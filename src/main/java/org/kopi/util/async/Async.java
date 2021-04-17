@@ -8,7 +8,7 @@ public class Async {
         return thread;
     }
 
-    public static void stopAllWhenFirstEnds(int interval, Thread... threads) {
+    public static void stopAllWhenFirstEnds(int interval, ThrowableRunnable onClose, Thread... threads) {
         try {
             boolean wait = true;
             while (wait) {
@@ -23,12 +23,14 @@ public class Async {
             for (Thread thread : threads) {
                 thread.interrupt();
             }
-
+            onClose.run();
             for (Thread thread : threads) {
                 thread.join();
             }
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
     }
 

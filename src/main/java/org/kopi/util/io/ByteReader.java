@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketException;
 import java.util.Optional;
 
 public class ByteReader implements Closeable, AutoCloseable {
@@ -17,20 +18,27 @@ public class ByteReader implements Closeable, AutoCloseable {
     }
 
     public Optional<byte[]> read() throws IOException {
-        int len = is.read(buff);
-        if (len < 0) {
-            return Optional.empty();
-        }
+        try {
+            int len = is.read(buff);
+            if (len < 0) {
+                return Optional.empty();
+            }
 
-        ByteArrayOutputStream res = new ByteArrayOutputStream();
-        res.write(buff, 0, len);
-        int available = is.available();
-        while (available > 0) {
-            res.write(is.readNBytes(available));
-            available = is.available();
-        }
+            ByteArrayOutputStream res = new ByteArrayOutputStream();
+            res.write(buff, 0, len);
+            int available = is.available();
+            while (available > 0) {
+                res.write(is.readNBytes(available));
+                available = is.available();
+            }
 
-        return Optional.of(res.toByteArray());
+            return Optional.of(res.toByteArray());
+        } catch (SocketException ex) {
+            if ("Socket closed".equalsIgnoreCase(ex.getMessage())) {
+                return Optional.empty();
+            }
+            throw ex;
+        }
     }
 
     @Override

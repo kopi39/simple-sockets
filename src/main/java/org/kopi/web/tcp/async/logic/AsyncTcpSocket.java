@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class AsyncTcpSocket implements AutoCloseable {
+public abstract class AsyncTcpSocket implements AutoCloseable {
 
     private static final int INTERVAL = 10; // 10 ms
 
@@ -36,7 +36,7 @@ public class AsyncTcpSocket implements AutoCloseable {
 
         Thread receiverThread = Async.start(this::processInput);
         Thread producerThread = Async.start(() -> this.producer.process(this::sendMessage));
-        Async.stopAllWhenFirstEnds(INTERVAL, receiverThread, producerThread);
+        Async.stopAllWhenFirstEnds(INTERVAL, this::closeInternal, receiverThread, producerThread);
     }
 
     private void sendMessage(byte[] data) {
@@ -58,14 +58,21 @@ public class AsyncTcpSocket implements AutoCloseable {
             byte[] decryptedInput = this.encryptionService.decrypt(input);
             boolean close = receiver.process(decryptedInput);
             if (close) {
+                onCloseSocketRequest();
                 break;
             }
         }
     }
 
+    protected abstract void onCloseSocketRequest();
+
+    private void closeInternal() {
+        SafeClose.close(in, out, socket);
+    }
+
     @Override
     public void close() {
-        SafeClose.close(in, out, socket);
+        closeInternal();
     }
 
 }

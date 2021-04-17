@@ -21,4 +21,9 @@ public class TcpAsyncClient extends AsyncTcpSocket {
         }
     }
 
+    @Override
+    protected void onCloseSocketRequest() {
+
+    }
+
 }

@@ -7,16 +7,20 @@ import org.kopi.util.security.itf.EncryptionService;
 import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TcpSyncServer implements AutoCloseable {
+
+    private static final int SERVER_BACKLOG = 1;
+
+    private final EncryptionService encryptionService;
+    private final Interpreter interpreter;
+    private final AtomicBoolean stopServer = new AtomicBoolean(false);
 
     private ServerSocket serverSocket;
     private Socket clientSocket;
     private DataOutputStream out;
     private ByteReader in;
-
-    private final EncryptionService encryptionService;
-    private final Interpreter interpreter;
 
     public TcpSyncServer(Interpreter interpreter, EncryptionService encryptionService) {
         this.encryptionService = encryptionService;
@@ -25,14 +29,22 @@ public class TcpSyncServer implements AutoCloseable {
 
     public void start(int port) {
         try {
-            startInternal(port);
+            serverSocket = new ServerSocket(port, SERVER_BACKLOG);
+            while (!this.stopServer.get()) {
+                startInternal();
+                closeInternal();
+            }
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    private void startInternal(int port) throws Exception {
-        serverSocket = new ServerSocket(port);
+    public void stopServer() {
+        stopServer.set(true);
+        close();
+    }
+
+    private void startInternal() throws Exception {
         clientSocket = serverSocket.accept();
         out = new DataOutputStream(clientSocket.getOutputStream());
         in = new ByteReader(clientSocket.getInputStream());
@@ -44,13 +56,18 @@ public class TcpSyncServer implements AutoCloseable {
             }
             byte[] decryptedInput = this.encryptionService.decrypt(input);
             Response response = interpreter.process(decryptedInput);
-            if (response.closeConnection) {
+            if (response.closeServer) {
+                stopServer();
                 break;
             }
             byte[] encryptedOutput = this.encryptionService.encrypt(response.body);
             out.write(encryptedOutput);
             out.flush();
         }
+    }
+
+    private void closeInternal() {
+        SafeClose.close(in, out, clientSocket);
     }
 
     @Override
@@ -64,12 +81,12 @@ public class TcpSyncServer implements AutoCloseable {
     }
 
     public static class Response {
-        private boolean closeConnection;
+        private boolean closeServer;
         private byte[] body;
 
-        public static Response closeConnection() {
+        public static Response closeServer() {
             Response response = new Response();
-            response.closeConnection = true;
+            response.closeServer = true;
             return response;
         }
 

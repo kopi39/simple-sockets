@@ -15,7 +15,7 @@ public class SimpleServerInterpreter implements TcpSyncServer.Interpreter {
     public TcpSyncServer.Response process(byte[] input) {
         String message = this.encodingService.decode(input);
         if (Config.CLOSE_SIGNAL.equals(message)) {
-            return TcpSyncServer.Response.closeConnection();
+            return TcpSyncServer.Response.closeServer();
         }
         System.out.println(message);
         String responseMessage = "server -> " + message;
