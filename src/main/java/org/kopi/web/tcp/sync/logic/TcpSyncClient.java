@@ -1,27 +1,40 @@
 package org.kopi.web.tcp.sync.logic;
 
-import java.io.BufferedReader;
+import org.kopi.util.io.ByteReader;
+import org.kopi.util.security.itf.EncryptionService;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.OutputStream;
 import java.net.Socket;
 
 public class TcpSyncClient {
 
+    private final EncryptionService encryptionService;
+
     private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+    private OutputStream out;
+    private ByteReader in;
+
+    public TcpSyncClient(EncryptionService encryptionService) {
+        this.encryptionService = encryptionService;
+    }
 
     public void startConnection(String host, int port) throws IOException {
         clientSocket = new Socket(host, port);
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        out = clientSocket.getOutputStream();
+        in = new ByteReader(clientSocket.getInputStream());
     }
 
-    public String sendMessage(String message) {
+    public byte[] sendMessage(byte[] input) {
         try {
-            out.println(message);
-            return in.readLine();
+            byte[] encryptedInput = this.encryptionService.encrypt(input);
+            out.write(encryptedInput);
+            out.flush();
+            byte[] response = in.read().orElse(null);
+            if (response == null) {
+                return null;
+            }
+            return this.encryptionService.decrypt(response);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

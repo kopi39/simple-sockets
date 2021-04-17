@@ -1,11 +1,10 @@
 package org.kopi.web.tcp.sync.logic;
 
-import org.kopi.config.Config;
+import org.kopi.util.io.ByteReader;
+import org.kopi.util.security.itf.EncryptionService;
 
-import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -13,8 +12,16 @@ public class TcpSyncServer {
 
     private ServerSocket serverSocket;
     private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+    private DataOutputStream out;
+    private ByteReader in;
+
+    private final EncryptionService encryptionService;
+    private final Interpreter interpreter;
+
+    public TcpSyncServer(Interpreter interpreter, EncryptionService encryptionService) {
+        this.encryptionService = encryptionService;
+        this.interpreter = interpreter;
+    }
 
     public void start(int port) {
         try {
@@ -27,16 +34,22 @@ public class TcpSyncServer {
     private void startInternal(int port) throws Exception {
         serverSocket = new ServerSocket(port);
         clientSocket = serverSocket.accept();
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        out = new DataOutputStream(clientSocket.getOutputStream());
+        in = new ByteReader(clientSocket.getInputStream());
 
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            if (Config.CLOSE_SIGNAL.equals(inputLine)) {
-                out.println("Closing connection");
+        while (true) {
+            byte[] input = in.read().orElse(null);
+            if (input == null) {
                 break;
             }
-            out.println("server -> " + inputLine);
+            byte[] decryptedInput = this.encryptionService.decrypt(input);
+            Response response = interpreter.process(decryptedInput);
+            if (response.closeConnection) {
+                break;
+            }
+            byte[] encryptedOutput = this.encryptionService.encrypt(response.body);
+            out.write(encryptedOutput);
+            out.flush();
         }
 
         stop();
@@ -47,6 +60,28 @@ public class TcpSyncServer {
         out.close();
         clientSocket.close();
         serverSocket.close();
+    }
+
+    @FunctionalInterface
+    public interface Interpreter {
+        Response process(byte[] input);
+    }
+
+    public static class Response {
+        private boolean closeConnection;
+        private byte[] body;
+
+        public static Response closeConnection() {
+            Response response = new Response();
+            response.closeConnection = true;
+            return response;
+        }
+
+        public static Response create(byte[] body) {
+            Response response = new Response();
+            response.body = body;
+            return response;
+        }
     }
 
 }
