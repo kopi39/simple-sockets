@@ -2,6 +2,7 @@ package org.kopi.web.tcp.async.logic;
 
 import org.kopi.util.io.SafeClose;
 import org.kopi.util.security.itf.EncryptionService;
+import org.kopi.web.socket.itf.SocketServer;
 import org.kopi.web.tcp.async.logic.itf.Producer;
 import org.kopi.web.tcp.async.logic.itf.Receiver;
 
@@ -9,7 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TcpAsyncServer extends AsyncTcpSocket {
+public class TcpAsyncServer extends AsyncTcpSocket implements SocketServer {
     private static final int SERVER_BACKLOG = 1;
 
     private ServerSocket serverSocket;
@@ -24,6 +25,7 @@ public class TcpAsyncServer extends AsyncTcpSocket {
         this.stopServer();
     }
 
+    @Override
     public void start(int port) {
         initServer(port);
         while (!stopServer.get()) {
@@ -31,6 +33,7 @@ public class TcpAsyncServer extends AsyncTcpSocket {
         }
     }
 
+    @Override
     public void stopServer() {
         this.stopServer.set(true);
         close();

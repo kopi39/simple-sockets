@@ -3,6 +3,7 @@ package org.kopi.web.tcp.async;
 import org.kopi.config.Config;
 import org.kopi.util.encoding.Utf8EncodingService;
 import org.kopi.util.security.AesEncryptionService;
+import org.kopi.web.socket.itf.SocketServer;
 import org.kopi.web.tcp.async.logic.ConsoleProducer;
 import org.kopi.web.tcp.async.logic.ConsoleReceiver;
 import org.kopi.web.tcp.async.logic.TcpAsyncServer;
@@ -15,7 +16,7 @@ public class Server {
         ConsoleProducer producer = new ConsoleProducer(encodingService);
         ConsoleReceiver receiver = new ConsoleReceiver(encodingService);
 
-        try (TcpAsyncServer server = new TcpAsyncServer(producer, receiver, encryptionService)) {
+        try (SocketServer server = new TcpAsyncServer(producer, receiver, encryptionService)) {
             server.start(Config.PORT);
         }
     }

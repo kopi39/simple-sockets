@@ -3,12 +3,13 @@ package org.kopi.web.tcp.sync.logic;
 import org.kopi.util.io.ByteReader;
 import org.kopi.util.io.SafeClose;
 import org.kopi.util.security.itf.EncryptionService;
+import org.kopi.web.socket.itf.SyncSocketClient;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class TcpSyncClient implements AutoCloseable {
+public class TcpSyncClient implements SyncSocketClient {
 
     private final EncryptionService encryptionService;
 
@@ -20,13 +21,19 @@ public class TcpSyncClient implements AutoCloseable {
         this.encryptionService = encryptionService;
     }
 
-    public void startConnection(String host, int port) throws IOException {
-        clientSocket = new Socket(host, port);
-        out = clientSocket.getOutputStream();
-        in = new ByteReader(clientSocket.getInputStream());
+    @Override
+    public void connect(String host, int port) {
+        try {
+            clientSocket = new Socket(host, port);
+            out = clientSocket.getOutputStream();
+            in = new ByteReader(clientSocket.getInputStream());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
-    public byte[] sendMessage(byte[] input) {
+    @Override
+    public byte[] send(byte[] input) {
         try {
             byte[] encryptedInput = this.encryptionService.encrypt(input);
             out.write(encryptedInput);

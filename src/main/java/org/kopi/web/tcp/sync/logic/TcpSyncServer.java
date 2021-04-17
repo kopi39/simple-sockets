@@ -3,13 +3,14 @@ package org.kopi.web.tcp.sync.logic;
 import org.kopi.util.io.ByteReader;
 import org.kopi.util.io.SafeClose;
 import org.kopi.util.security.itf.EncryptionService;
+import org.kopi.web.socket.itf.SocketServer;
 
 import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TcpSyncServer implements AutoCloseable {
+public class TcpSyncServer implements SocketServer {
 
     private static final int SERVER_BACKLOG = 1;
 
@@ -27,6 +28,7 @@ public class TcpSyncServer implements AutoCloseable {
         this.interpreter = interpreter;
     }
 
+    @Override
     public void start(int port) {
         try {
             serverSocket = new ServerSocket(port, SERVER_BACKLOG);
@@ -39,6 +41,7 @@ public class TcpSyncServer implements AutoCloseable {
         }
     }
 
+    @Override
     public void stopServer() {
         stopServer.set(true);
         close();

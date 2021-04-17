@@ -4,6 +4,7 @@ import org.kopi.config.Config;
 import org.kopi.util.encoding.Utf8EncodingService;
 import org.kopi.util.security.AesEncryptionService;
 import org.kopi.util.security.itf.EncryptionService;
+import org.kopi.web.socket.itf.SocketServer;
 import org.kopi.web.tcp.sync.logic.SimpleServerInterpreter;
 import org.kopi.web.tcp.sync.logic.TcpSyncServer;
 
@@ -14,7 +15,7 @@ public class Server {
         SimpleServerInterpreter interpreter = new SimpleServerInterpreter(encodingService);
         EncryptionService encryptionService = new AesEncryptionService(Config.TMP_KEY);
 
-        try (TcpSyncServer server = new TcpSyncServer(interpreter, encryptionService)) {
+        try (SocketServer server = new TcpSyncServer(interpreter, encryptionService)) {
             server.start(Config.PORT);
         }
     }
