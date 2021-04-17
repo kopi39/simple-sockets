@@ -1,11 +1,12 @@
 package org.kopi.util.io;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
-public class ByteReader implements AutoCloseable {
+public class ByteReader implements Closeable, AutoCloseable {
 
     private final InputStream is;
     private final byte[] buff;

@@ -2,6 +2,7 @@ package org.kopi.web.tcp.async.logic;
 
 import org.kopi.util.async.Async;
 import org.kopi.util.io.ByteReader;
+import org.kopi.util.io.SafeClose;
 import org.kopi.util.security.itf.EncryptionService;
 import org.kopi.web.tcp.async.logic.itf.Producer;
 import org.kopi.web.tcp.async.logic.itf.Receiver;
@@ -64,19 +65,7 @@ public class AsyncTcpSocket implements AutoCloseable {
 
     @Override
     public void close() {
-        try {
-            if (in != null) {
-                in.close();
-            }
-            if (out != null) {
-                out.close();
-            }
-            if (socket != null && !socket.isClosed()) {
-                socket.close();
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
+        SafeClose.close(in, out, socket);
     }
 
 }

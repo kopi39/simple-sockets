@@ -13,8 +13,10 @@ public class Server {
         Utf8EncodingService encodingService = new Utf8EncodingService();
         SimpleServerInterpreter interpreter = new SimpleServerInterpreter(encodingService);
         EncryptionService encryptionService = new AesEncryptionService(Config.TMP_KEY);
-        TcpSyncServer server = new TcpSyncServer(interpreter, encryptionService);
-        server.start(Config.PORT);
+
+        try (TcpSyncServer server = new TcpSyncServer(interpreter, encryptionService)) {
+            server.start(Config.PORT);
+        }
     }
 
 }

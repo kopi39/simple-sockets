@@ -1,10 +1,10 @@
 package org.kopi.web.tcp.async.logic;
 
+import org.kopi.util.io.SafeClose;
 import org.kopi.util.security.itf.EncryptionService;
 import org.kopi.web.tcp.async.logic.itf.Producer;
 import org.kopi.web.tcp.async.logic.itf.Receiver;
 
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -28,12 +28,6 @@ public class TcpAsyncServer extends AsyncTcpSocket {
     @Override
     public void close() {
         super.close();
-        try {
-            if (serverSocket != null && !serverSocket.isClosed()) {
-                this.serverSocket.close();
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
+        SafeClose.close(serverSocket);
     }
 }
