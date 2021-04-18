@@ -23,9 +23,9 @@ public class ProducerMock implements Producer {
             byte[] encodedMessage = this.encodingService.encode(message);
             sender.send(encodedMessage);
             try {
-                Thread.sleep(10);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                // may be silent
             }
             if (IntegrationTestsConfig.CLOSE_SIGNAL.equalsIgnoreCase(message)) {
                 break;

@@ -1,8 +1,15 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
 <suite name="SimpleSockets Tests" verbose="1">
-    <test name="Integration">
+    <test name="Tests">
         <packages>
             <package name="org.kopi.socket.integration.*"/>
+        </packages>
+    </test>
+    <test name="Unit tests">
+        <packages>
+            <package name="org.kopi.*">
+                <exclude name="org.kopi.socket.integration.*"/>
+            </package>
         </packages>
     </test>
 </suite>
