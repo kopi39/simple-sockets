@@ -7,6 +7,7 @@ import org.kopi.socket.itf.StrategySelector;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -67,6 +68,10 @@ public class OneToOneSocketServer implements SocketServer {
                 return;
             }
             closeClient();
+        } catch (SocketException ex) {
+            if (!"Socket closed".equalsIgnoreCase(ex.getMessage())) {
+                throw new RuntimeException(ex);
+            }
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

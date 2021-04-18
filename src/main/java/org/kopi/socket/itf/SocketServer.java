@@ -1,6 +1,8 @@
 package org.kopi.socket.itf;
 
-public interface SocketServer extends AutoCloseable {
+import java.io.Closeable;
+
+public interface SocketServer extends AutoCloseable, Closeable {
     void start(int port);
 
     void stopServer();
