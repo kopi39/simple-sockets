@@ -1,30 +1,35 @@
 package org.kopi.web.tcp.async.logic;
 
-import org.kopi.util.security.itf.EncryptionService;
 import org.kopi.web.socket.itf.SocketClient;
-import org.kopi.web.tcp.async.logic.itf.Producer;
-import org.kopi.web.tcp.async.logic.itf.Receiver;
 
 import java.net.Socket;
 
-public class TcpAsyncClient extends AsyncTcpSocket implements SocketClient {
+public class TcpAsyncClient implements SocketClient {
 
-    public TcpAsyncClient(Producer producer, Receiver receiver, EncryptionService encryptionService) {
-        super(producer, receiver, encryptionService);
+
+    private final AsyncStrategy asyncStrategy;
+
+    public TcpAsyncClient(AsyncStrategy asyncStrategy) {
+        this.asyncStrategy = asyncStrategy;
     }
 
     @Override
     public void connect(String host, int port) {
         try {
             Socket clientSocket = new Socket(host, port);
-            super.start(clientSocket);
+            onConnect(clientSocket);
+            this.asyncStrategy.apply(clientSocket);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
 
     @Override
-    protected void onCloseSocketRequest() {
+    public void close() {
+        this.asyncStrategy.close();
+    }
+
+    protected void onConnect(Socket clientSocket) throws Exception {
 
     }
 

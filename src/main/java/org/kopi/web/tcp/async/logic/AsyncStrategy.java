@@ -4,6 +4,7 @@ import org.kopi.util.async.Async;
 import org.kopi.util.io.ByteReader;
 import org.kopi.util.io.SafeClose;
 import org.kopi.util.security.itf.EncryptionService;
+import org.kopi.web.socket.itf.SocketStrategy;
 import org.kopi.web.tcp.async.logic.itf.Producer;
 import org.kopi.web.tcp.async.logic.itf.Receiver;
 
@@ -11,7 +12,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public abstract class AsyncTcpSocket implements AutoCloseable {
+public class AsyncStrategy implements SocketStrategy {
+
+    public static final int CODE = 0;
 
     private static final int INTERVAL = 10; // 10 ms
 
@@ -19,24 +22,36 @@ public abstract class AsyncTcpSocket implements AutoCloseable {
     private final Producer producer;
     private final Receiver receiver;
 
+    private Result result;
     private Socket socket;
     private OutputStream out;
     private ByteReader in;
 
-    public AsyncTcpSocket(Producer producer, Receiver receiver, EncryptionService encryptionService) {
+    public AsyncStrategy(Producer producer, Receiver receiver, EncryptionService encryptionService) {
         this.encryptionService = encryptionService;
         this.producer = producer;
         this.receiver = receiver;
     }
 
-    public void start(Socket socket) throws Exception {
+    @Override
+    public Result apply(Socket socket) {
         this.socket = socket;
-        out = socket.getOutputStream();
-        in = new ByteReader(socket.getInputStream());
+        this.result = Result.disconnectClient();
+        try {
+            out = socket.getOutputStream();
+            in = new ByteReader(socket.getInputStream());
+            Thread receiverThread = Async.start(this::processInput);
+            Thread producerThread = Async.start(() -> this.producer.process(this::sendMessage));
+            Async.stopAllWhenFirstEnds(INTERVAL, this::closeInternal, receiverThread, producerThread);
+            return this.result;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 
-        Thread receiverThread = Async.start(this::processInput);
-        Thread producerThread = Async.start(() -> this.producer.process(this::sendMessage));
-        Async.stopAllWhenFirstEnds(INTERVAL, this::closeInternal, receiverThread, producerThread);
+    @Override
+    public int getStrategyCode() {
+        return CODE;
     }
 
     private void sendMessage(byte[] data) {
@@ -58,13 +73,12 @@ public abstract class AsyncTcpSocket implements AutoCloseable {
             byte[] decryptedInput = this.encryptionService.decrypt(input);
             boolean close = receiver.process(decryptedInput);
             if (close) {
-                onCloseSocketRequest();
-                break;
+                this.result = Result.stopServer();
+                return;
             }
         }
+        this.result = Result.disconnectClient();
     }
-
-    protected abstract void onCloseSocketRequest();
 
     private void closeInternal() {
         SafeClose.close(in, out, socket);
@@ -74,5 +88,4 @@ public abstract class AsyncTcpSocket implements AutoCloseable {
     public void close() {
         closeInternal();
     }
-
 }

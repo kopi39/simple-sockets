@@ -2,8 +2,10 @@ package org.kopi.web.tcp.sync.logic;
 
 import org.kopi.config.Config;
 import org.kopi.util.encoding.itf.EncodingService;
+import org.kopi.web.tcp.sync.logic.itf.Interpreter;
+import org.kopi.web.tcp.sync.logic.model.Response;
 
-public class SimpleServerInterpreter implements TcpSyncServer.Interpreter {
+public class SimpleServerInterpreter implements Interpreter {
 
     private final EncodingService<String, byte[]> encodingService;
 
@@ -12,14 +14,14 @@ public class SimpleServerInterpreter implements TcpSyncServer.Interpreter {
     }
 
     @Override
-    public TcpSyncServer.Response process(byte[] input) {
+    public Response process(byte[] input) {
         String message = this.encodingService.decode(input);
         if (Config.CLOSE_SIGNAL.equals(message)) {
-            return TcpSyncServer.Response.closeServer();
+            return Response.closeServer();
         }
         System.out.println(message);
         String responseMessage = "server -> " + message;
         byte[] encodedResponseMessage = this.encodingService.encode(responseMessage);
-        return TcpSyncServer.Response.create(encodedResponseMessage);
+        return Response.create(encodedResponseMessage);
     }
 }

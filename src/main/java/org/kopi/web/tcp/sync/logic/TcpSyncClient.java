@@ -25,9 +25,10 @@ public class TcpSyncClient implements SyncSocketClient {
     public void connect(String host, int port) {
         try {
             clientSocket = new Socket(host, port);
+            onConnect(clientSocket);
             out = clientSocket.getOutputStream();
             in = new ByteReader(clientSocket.getInputStream());
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -51,6 +52,10 @@ public class TcpSyncClient implements SyncSocketClient {
     @Override
     public void close() {
         SafeClose.close(in, out, clientSocket);
+    }
+
+    protected void onConnect(Socket clientSocket) throws Exception {
+
     }
 
 }
