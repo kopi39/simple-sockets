@@ -1,4 +1,4 @@
-package org.kopi.socket.integration.tcp.config;
+package org.kopi.socket.integration.config;
 
 public class IntegrationTestsConfig {
     public static final int PORT = 6666;

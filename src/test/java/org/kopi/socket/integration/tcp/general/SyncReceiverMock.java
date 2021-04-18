@@ -1,6 +1,6 @@
 package org.kopi.socket.integration.tcp.general;
 
-import org.kopi.socket.integration.tcp.config.IntegrationTestsConfig;
+import org.kopi.socket.integration.config.IntegrationTestsConfig;
 import org.kopi.socket.tcp.strategies.sync.itf.SyncReceiver;
 import org.kopi.util.encoding.itf.EncodingService;
 

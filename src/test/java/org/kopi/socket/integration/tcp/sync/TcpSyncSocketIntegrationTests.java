@@ -1,6 +1,6 @@
 package org.kopi.socket.integration.tcp.sync;
 
-import org.kopi.socket.integration.tcp.config.IntegrationTestsConfig;
+import org.kopi.socket.integration.config.IntegrationTestsConfig;
 import org.kopi.socket.integration.tcp.general.SyncProducerMock;
 import org.kopi.socket.integration.tcp.general.SyncReceiverMock;
 import org.kopi.socket.itf.SocketClient;
