@@ -1,39 +1,43 @@
 package org.kopi.socket.tcp.strategies.sync;
 
+import org.kopi.socket.itf.SocketStrategy;
+import org.kopi.socket.tcp.strategies.sync.itf.SyncProducer;
 import org.kopi.util.io.ByteReader;
 import org.kopi.util.io.SafeClose;
 import org.kopi.util.security.itf.EncryptionService;
-import org.kopi.socket.itf.SyncSocketClient;
 
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class TcpSyncClient implements SyncSocketClient {
+public class ProducerSyncStrategy implements SocketStrategy {
+
+    public static final int CODE = 2;
 
     private final EncryptionService encryptionService;
+    private final SyncProducer producer;
 
-    private Socket clientSocket;
+    private Socket socket;
     private OutputStream out;
     private ByteReader in;
 
-    public TcpSyncClient(EncryptionService encryptionService) {
+    public ProducerSyncStrategy(SyncProducer producer, EncryptionService encryptionService) {
         this.encryptionService = encryptionService;
+        this.producer = producer;
     }
 
     @Override
-    public void connect(String host, int port) {
+    public Result apply(Socket clientSocket) {
         try {
-            clientSocket = new Socket(host, port);
-            onConnect(clientSocket);
-            out = clientSocket.getOutputStream();
-            in = new ByteReader(clientSocket.getInputStream());
+            this.socket = clientSocket;
+            this.out = clientSocket.getOutputStream();
+            this.in = new ByteReader(clientSocket.getInputStream());
+            return producer.process(this::send);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    @Override
-    public byte[] send(byte[] input) {
+    private byte[] send(byte[] input) {
         try {
             byte[] encryptedInput = this.encryptionService.encrypt(input);
             out.write(encryptedInput);
@@ -49,12 +53,12 @@ public class TcpSyncClient implements SyncSocketClient {
     }
 
     @Override
+    public int getStrategyCode() {
+        return CODE;
+    }
+
+    @Override
     public void close() {
-        SafeClose.close(in, out, clientSocket);
+        SafeClose.close(in, out, socket);
     }
-
-    protected void onConnect(Socket clientSocket) throws Exception {
-
-    }
-
 }

@@ -1,7 +1,7 @@
 package org.kopi.socket.tcp.strategies.sync;
 
 import org.kopi.socket.itf.SocketStrategy;
-import org.kopi.socket.tcp.strategies.sync.itf.Interpreter;
+import org.kopi.socket.tcp.strategies.sync.itf.SyncReceiver;
 import org.kopi.util.io.ByteReader;
 import org.kopi.util.io.SafeClose;
 import org.kopi.util.security.itf.EncryptionService;
@@ -9,16 +9,16 @@ import org.kopi.util.security.itf.EncryptionService;
 import java.io.DataOutputStream;
 import java.net.Socket;
 
-public class SyncStrategy implements SocketStrategy {
+public class ReceiverSyncStrategy implements SocketStrategy {
 
     public static final int CODE = 1;
 
     private final EncryptionService encryptionService;
-    private final Interpreter interpreter;
+    private final SyncReceiver syncReceiver;
 
-    public SyncStrategy(Interpreter interpreter, EncryptionService encryptionService) {
+    public ReceiverSyncStrategy(SyncReceiver syncReceiver, EncryptionService encryptionService) {
         this.encryptionService = encryptionService;
-        this.interpreter = interpreter;
+        this.syncReceiver = syncReceiver;
     }
 
     private Socket clientSocket;
@@ -57,7 +57,7 @@ public class SyncStrategy implements SocketStrategy {
                 break;
             }
             byte[] decryptedInput = this.encryptionService.decrypt(input);
-            Interpreter.Response response = interpreter.process(decryptedInput);
+            SyncReceiver.Response response = syncReceiver.process(decryptedInput);
             if (response.isCloseServer()) {
                 return Result.stopServer();
             }

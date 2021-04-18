@@ -2,7 +2,7 @@ package org.kopi.socket.tcp.strategies.sync.itf;
 
 
 @FunctionalInterface
-public interface Interpreter {
+public interface SyncReceiver {
     Response process(byte[] input);
 
     class Response {
