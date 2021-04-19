@@ -14,7 +14,7 @@ import java.util.function.Function;
 
 public class ProxyStrategy implements SocketStrategy {
 
-    private static final int CODE = 4; // TODO ??
+    private static final int CODE = 4;
 
     private final Interceptor interceptor;
     private final String host;

@@ -4,7 +4,9 @@ import org.kopi.socket.itf.SocketClient;
 import org.kopi.socket.itf.SocketServer;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.itf.StrategySelector;
+import org.kopi.socket.tcp.proxy.interceptors.ClientEncryptionInterceptor;
 import org.kopi.socket.tcp.proxy.ProxyStrategy;
+import org.kopi.socket.tcp.proxy.interceptors.ServerEncryptionInterceptor;
 import org.kopi.socket.tcp.proxy.itf.Interceptor;
 import org.kopi.socket.tcp.strategies.async.AsyncStrategy;
 import org.kopi.socket.tcp.strategies.async.itf.Producer;
@@ -57,6 +59,20 @@ public class TcpSocketFactory {
 
     public SocketServer createProxy(String host, int port, Interceptor interceptor) {
         StrategySelector selector = new AnyStrategySelector();
+        SocketStrategy proxyStrategy = new ProxyStrategy(host, port, interceptor);
+        return new OneToOneSocketServer(selector, proxyStrategy);
+    }
+
+    public SocketServer createServerProxy(String host, int port) {
+        StrategySelector selector = new AnyStrategySelector();
+        Interceptor interceptor = new ServerEncryptionInterceptor(encryptionService);
+        SocketStrategy proxyStrategy = new ProxyStrategy(host, port, interceptor);
+        return new OneToOneSocketServer(selector, proxyStrategy);
+    }
+
+    public SocketServer createClientProxy(String host, int port) {
+        StrategySelector selector = new AnyStrategySelector();
+        Interceptor interceptor = new ClientEncryptionInterceptor(encryptionService);
         SocketStrategy proxyStrategy = new ProxyStrategy(host, port, interceptor);
         return new OneToOneSocketServer(selector, proxyStrategy);
     }
