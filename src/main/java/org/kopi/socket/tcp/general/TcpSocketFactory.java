@@ -1,9 +1,13 @@
 package org.kopi.socket.tcp.general;
 
+import org.kopi.socket.examples.config.Config;
+import org.kopi.socket.examples.tcp.general.SimpleInterceptor;
 import org.kopi.socket.itf.SocketClient;
 import org.kopi.socket.itf.SocketServer;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.itf.StrategySelector;
+import org.kopi.socket.tcp.proxy.ProxyStrategy;
+import org.kopi.socket.tcp.proxy.itf.Interceptor;
 import org.kopi.socket.tcp.strategies.async.AsyncStrategy;
 import org.kopi.socket.tcp.strategies.async.itf.Producer;
 import org.kopi.socket.tcp.strategies.async.itf.Receiver;
@@ -11,6 +15,7 @@ import org.kopi.socket.tcp.strategies.sync.ProducerSyncStrategy;
 import org.kopi.socket.tcp.strategies.sync.ReceiverSyncStrategy;
 import org.kopi.socket.tcp.strategies.sync.itf.SyncProducer;
 import org.kopi.socket.tcp.strategies.sync.itf.SyncReceiver;
+import org.kopi.util.encoding.Utf8EncodingService;
 import org.kopi.util.security.NoEncryptionService;
 import org.kopi.util.security.itf.EncryptionService;
 
@@ -51,6 +56,12 @@ public class TcpSocketFactory {
         SocketStrategy syncStrategy = new ReceiverSyncStrategy(syncReceiver, encryptionService);
         SocketStrategy asyncStrategy = new AsyncStrategy(producer, receiver, encryptionService);
         return new OneToOneSocketServer(strategySelector, syncStrategy, asyncStrategy);
+    }
+
+    public SocketServer createProxy(String host, int port, Interceptor interceptor) {
+        StrategySelector selector = new AnyStrategySelector();
+        SocketStrategy proxyStrategy = new ProxyStrategy(host, port, interceptor);
+        return new OneToOneSocketServer(selector, proxyStrategy);
     }
 
     public SocketClient createSyncClient(SyncProducer syncProducer, boolean serverIsMixed) {
