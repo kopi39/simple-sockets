@@ -1,7 +1,5 @@
 package org.kopi.socket.tcp.general;
 
-import org.kopi.socket.examples.config.Config;
-import org.kopi.socket.examples.tcp.general.SimpleInterceptor;
 import org.kopi.socket.itf.SocketClient;
 import org.kopi.socket.itf.SocketServer;
 import org.kopi.socket.itf.SocketStrategy;
@@ -15,7 +13,6 @@ import org.kopi.socket.tcp.strategies.sync.ProducerSyncStrategy;
 import org.kopi.socket.tcp.strategies.sync.ReceiverSyncStrategy;
 import org.kopi.socket.tcp.strategies.sync.itf.SyncProducer;
 import org.kopi.socket.tcp.strategies.sync.itf.SyncReceiver;
-import org.kopi.util.encoding.Utf8EncodingService;
 import org.kopi.util.security.NoEncryptionService;
 import org.kopi.util.security.itf.EncryptionService;
 
