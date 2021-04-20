@@ -64,8 +64,8 @@ public class SingleTcpSocketProxyIntegrationTests {
         List<String> messagesReceivedByClient = clientReceiver.getReceivedMessages();
         List<String> messagesReceivedByServer = serverReceiver.getReceivedMessages();
 
-        List<String> expectedOnServer = Arrays.asList("+from client+", "+TO+", "+server*/*-/$^%#$+");
-        List<String> expectedOnClient = Arrays.asList("-server-", "-messages-");
+        List<String> expectedOnServer = Arrays.asList("-+from client+-", "-+TO+-", "-+server*/*-/$^%#$+-");
+        List<String> expectedOnClient = Arrays.asList("+-server-+", "+-messages-+");
 
         Assert.assertEquals(messagesReceivedByClient, expectedOnClient, messagesReceivedByClient.toString());
         Assert.assertEquals(messagesReceivedByServer, expectedOnServer, messagesReceivedByServer.toString());
@@ -92,8 +92,8 @@ public class SingleTcpSocketProxyIntegrationTests {
         List<String> messagesReceivedByClient2 = client2Receiver.getReceivedMessages();
         List<String> messagesReceivedByServer = serverReceiver.getReceivedMessages();
 
-        List<String> expectedOnServer = Arrays.asList("+from client+", "+TO+", "+server*/*-/$^%#$+", "+CLIENT+", "+2+", "+messages+");
-        List<String> expectedOnClient = Arrays.asList("-server-", "-messages-");
+        List<String> expectedOnServer = Arrays.asList("-+from client+-", "-+TO+-", "-+server*/*-/$^%#$+-", "-+CLIENT+-", "-+2+-", "-+messages+-");
+        List<String> expectedOnClient = Arrays.asList("+-server-+", "+-messages-+");
 
         Assert.assertEquals(messagesReceivedByClient1, expectedOnClient, messagesReceivedByClient1.toString());
         Assert.assertEquals(messagesReceivedByClient2, expectedOnClient, messagesReceivedByClient2.toString());
@@ -102,9 +102,10 @@ public class SingleTcpSocketProxyIntegrationTests {
 
     private SocketServer createProxy() {
         Utf8EncodingService encodingService = new Utf8EncodingService();
-        Interceptor interceptor = new InterceptorMock(encodingService);
+        Interceptor interceptor1 = new InterceptorMock(0, 1, "+", encodingService);
+        Interceptor interceptor2 = new InterceptorMock(1, 0, "-", encodingService);
         TcpSocketFactory socketFactory = new TcpSocketFactory();
-        return socketFactory.createProxy(IntegrationTestsConfig.HOST, IntegrationTestsConfig.PORT, interceptor);
+        return socketFactory.createProxy(IntegrationTestsConfig.HOST, IntegrationTestsConfig.PORT, interceptor1, interceptor2);
     }
 
     private ProducerMock createProducer(List<String> messagesToSend) {

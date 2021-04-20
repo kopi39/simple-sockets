@@ -4,9 +4,9 @@ import org.kopi.socket.itf.SocketClient;
 import org.kopi.socket.itf.SocketServer;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.itf.StrategySelector;
-import org.kopi.socket.tcp.proxy.interceptors.ClientEncryptionInterceptor;
 import org.kopi.socket.tcp.proxy.ProxyStrategy;
-import org.kopi.socket.tcp.proxy.interceptors.ServerEncryptionInterceptor;
+import org.kopi.socket.tcp.proxy.interceptors.EncryptIncomingDecryptOutgoingInterceptor;
+import org.kopi.socket.tcp.proxy.interceptors.EncryptOutgoingDecryptIncomingInterceptor;
 import org.kopi.socket.tcp.proxy.itf.Interceptor;
 import org.kopi.socket.tcp.strategies.async.AsyncStrategy;
 import org.kopi.socket.tcp.strategies.async.itf.Producer;
@@ -20,6 +20,7 @@ import org.kopi.util.security.itf.EncryptionService;
 
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.stream.Stream;
 
 public class TcpSocketFactory {
 
@@ -57,23 +58,23 @@ public class TcpSocketFactory {
         return new OneToOneSocketServer(strategySelector, syncStrategy, asyncStrategy);
     }
 
-    public SocketServer createProxy(String host, int port, Interceptor interceptor) {
+    public SocketServer createProxy(String host, int port, Interceptor... interceptors) {
         StrategySelector selector = new AnyStrategySelector();
-        SocketStrategy proxyStrategy = new ProxyStrategy(host, port, interceptor);
+        SocketStrategy proxyStrategy = new ProxyStrategy(host, port, interceptors);
         return new OneToOneSocketServer(selector, proxyStrategy);
     }
 
-    public SocketServer createServerProxy(String host, int port) {
+    public SocketServer createServerProxy(String host, int port, Interceptor... interceptors) {
         StrategySelector selector = new AnyStrategySelector();
-        Interceptor interceptor = new ServerEncryptionInterceptor(encryptionService);
-        SocketStrategy proxyStrategy = new ProxyStrategy(host, port, interceptor);
+        Interceptor encryption = new EncryptIncomingDecryptOutgoingInterceptor(encryptionService);
+        SocketStrategy proxyStrategy = new ProxyStrategy(host, port, concatInterceptors(interceptors, encryption));
         return new OneToOneSocketServer(selector, proxyStrategy);
     }
 
-    public SocketServer createClientProxy(String host, int port) {
+    public SocketServer createClientProxy(String host, int port, Interceptor... interceptors) {
         StrategySelector selector = new AnyStrategySelector();
-        Interceptor interceptor = new ClientEncryptionInterceptor(encryptionService);
-        SocketStrategy proxyStrategy = new ProxyStrategy(host, port, interceptor);
+        Interceptor encryption = new EncryptOutgoingDecryptIncomingInterceptor(encryptionService);
+        SocketStrategy proxyStrategy = new ProxyStrategy(host, port, concatInterceptors(interceptors, encryption));
         return new OneToOneSocketServer(selector, proxyStrategy);
     }
 
@@ -87,6 +88,10 @@ public class TcpSocketFactory {
         SocketStrategy strategy = new AsyncStrategy(producer, receiver, encryptionService);
         TcpSocketClient.OnConnect onConnect = getOnConnect(AsyncStrategy.CODE, serverIsMixed);
         return new TcpSocketClient(strategy, onConnect);
+    }
+
+    private Interceptor[] concatInterceptors(Interceptor[] interceptors, Interceptor... other) {
+        return Stream.of(interceptors, other).flatMap(Stream::of).toArray(Interceptor[]::new);
     }
 
     private TcpSocketClient.OnConnect getOnConnect(int serverStrategyCode, boolean serverIsMixed) {

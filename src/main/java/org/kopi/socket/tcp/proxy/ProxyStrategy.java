@@ -9,14 +9,14 @@ import org.kopi.util.io.SafeClose;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Optional;
-import java.util.function.Function;
+import java.util.*;
 
 public class ProxyStrategy implements SocketStrategy {
 
     private static final int CODE = 4;
 
-    private final Interceptor interceptor;
+    private final List<PipeElem> toServerPipe = new ArrayList<>();
+    private final List<PipeElem> toClientPipe = new ArrayList<>();
     private final String host;
     private final int port;
 
@@ -28,10 +28,10 @@ public class ProxyStrategy implements SocketStrategy {
     private OutputStream serverIn;
     private ByteReader serverOut;
 
-    public ProxyStrategy(String host, int port, Interceptor interceptor) {
+    public ProxyStrategy(String host, int port, Interceptor... interceptors) {
         this.host = host;
         this.port = port;
-        this.interceptor = interceptor;
+        this.createPipes(interceptors);
     }
 
     @Override
@@ -75,13 +75,13 @@ public class ProxyStrategy implements SocketStrategy {
         return false;
     }
 
-    private void passData(ByteReader out, OutputStream in, Function<byte[], Optional<byte[]>> interceptor) throws IOException {
+    private void passData(ByteReader out, OutputStream in, List<PipeElem> pipe) throws IOException {
         while (true) {
             byte[] received = out.read().orElse(null);
             if (received == null) {
                 break;
             }
-            byte[] intercepted = interceptor.apply(received).orElse(null);
+            byte[] intercepted = applyPipe(received, pipe).orElse(null);
             if (intercepted != null) {
                 in.write(intercepted);
                 in.flush();
@@ -89,11 +89,36 @@ public class ProxyStrategy implements SocketStrategy {
         }
     }
 
+    private Optional<byte[]> applyPipe(byte[] data, List<PipeElem> pipe) {
+        byte[] result = data;
+        for (PipeElem pipeElem : pipe) {
+            result = pipeElem.apply(result).orElse(null);
+            if (result == null) {
+                return Optional.empty();
+            }
+        }
+        return Optional.ofNullable(result);
+    }
+
     private void passDataFromServerToClient() throws IOException {
-        passData(serverOut, clientIn, interceptor::toClient);
+        passData(serverOut, clientIn, toClientPipe);
     }
 
     private void passDataFromClientToServer() throws IOException {
-        passData(clientOut, serverIn, interceptor::toServer);
+        passData(clientOut, serverIn, toServerPipe);
+    }
+
+    private void createPipes(Interceptor[] interceptorsArray) {
+        List<Interceptor> interceptors = new ArrayList<>(Arrays.asList(interceptorsArray));
+        interceptors.stream()
+                .sorted(Comparator.comparingInt(Interceptor::toClientIndex))
+                .forEach(x -> this.toClientPipe.add(x::toClient));
+        interceptors.stream()
+                .sorted(Comparator.comparingInt(Interceptor::toServerIndex))
+                .forEach(x -> this.toServerPipe.add(x::toServer));
+    }
+
+    private interface PipeElem {
+        Optional<byte[]> apply(byte[] data);
     }
 }

@@ -8,4 +8,12 @@ public interface Interceptor {
 
     Optional<byte[]> toClient(byte[] fromServer);
 
+    default int toServerIndex() {
+        return 0;
+    }
+
+    default int toClientIndex() {
+        return 0;
+    }
+
 }

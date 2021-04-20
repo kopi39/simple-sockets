@@ -5,11 +5,11 @@ import org.kopi.util.security.itf.EncryptionService;
 
 import java.util.Optional;
 
-public class ServerEncryptionInterceptor implements Interceptor {
+public class EncryptIncomingDecryptOutgoingInterceptor implements Interceptor {
 
     private final EncryptionService encryptionService;
 
-    public ServerEncryptionInterceptor(EncryptionService encryptionService) {
+    public EncryptIncomingDecryptOutgoingInterceptor(EncryptionService encryptionService) {
         this.encryptionService = encryptionService;
     }
 
@@ -23,5 +23,15 @@ public class ServerEncryptionInterceptor implements Interceptor {
     public Optional<byte[]> toClient(byte[] fromServer) {
         byte[] encrypted = encryptionService.encrypt(fromServer);
         return Optional.of(encrypted);
+    }
+
+    @Override
+    public int toServerIndex() {
+        return Integer.MIN_VALUE;
+    }
+
+    @Override
+    public int toClientIndex() {
+        return Integer.MAX_VALUE;
     }
 }
