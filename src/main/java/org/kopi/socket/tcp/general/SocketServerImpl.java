@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SocketServerImpl implements SocketServer {
 
+    private static final int TIMEOUT = 100;
     private static final int SERVER_BACKLOG = 50;
 
     private final AtomicBoolean stopServer = new AtomicBoolean(false);
@@ -78,7 +79,7 @@ public class SocketServerImpl implements SocketServer {
             clientThreads.removeIf(x -> !x.isAlive());
             Client client = new Client();
             client.socket = serverSocket.accept();
-            if (clients.size() >= maxConnections) {
+            if (!allowConnection()) {
                 client.socket.close();
                 return;
             }
@@ -93,6 +94,16 @@ public class SocketServerImpl implements SocketServer {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    private boolean allowConnection() {
+        for (int i = 0; i < TIMEOUT; ++i) {
+            if (clients.size() < maxConnections) {
+                return true;
+            }
+            Async.sleep(1);
+        }
+        return false;
     }
 
     private void handleClient(Client client) {
