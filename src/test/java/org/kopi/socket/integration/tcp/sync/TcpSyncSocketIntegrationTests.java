@@ -7,6 +7,7 @@ import org.kopi.socket.itf.SocketClient;
 import org.kopi.socket.itf.SocketServer;
 import org.kopi.socket.tcp.general.TcpSocketFactory;
 import org.kopi.socket.tcp.strategies.sync.itf.SyncProducer;
+import org.kopi.socket.tcp.strategies.sync.itf.SyncReceiver;
 import org.kopi.util.async.Async;
 import org.kopi.util.encoding.Utf8EncodingService;
 import org.kopi.util.io.SafeClose;
@@ -19,6 +20,7 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class TcpSyncSocketIntegrationTests {
 
@@ -96,7 +98,7 @@ public class TcpSyncSocketIntegrationTests {
 
     private SocketServer createServer() {
         Utf8EncodingService encodingService = new Utf8EncodingService();
-        SyncReceiverMock syncReceiver = new SyncReceiverMock(encodingService);
+        Supplier<SyncReceiver> syncReceiver = () -> new SyncReceiverMock(encodingService);
         EncryptionService encryptionService = new AesEncryptionService(IntegrationTestsConfig.TMP_KEY);
         TcpSocketFactory socketFactory = new TcpSocketFactory(encryptionService);
         return socketFactory.createSyncServer(syncReceiver);

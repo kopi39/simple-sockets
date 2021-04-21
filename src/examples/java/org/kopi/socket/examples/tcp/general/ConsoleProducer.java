@@ -1,9 +1,9 @@
 package org.kopi.socket.examples.tcp.general;
 
 import org.kopi.socket.examples.config.Config;
-import org.kopi.util.encoding.itf.EncodingService;
 import org.kopi.socket.tcp.strategies.async.itf.Producer;
 import org.kopi.socket.tcp.strategies.async.itf.Sender;
+import org.kopi.util.encoding.itf.EncodingService;
 
 import java.io.BufferedReader;
 import java.io.IOException;

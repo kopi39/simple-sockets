@@ -1,8 +1,8 @@
 package org.kopi.socket.examples.tcp.general;
 
 import org.kopi.socket.examples.config.Config;
-import org.kopi.util.encoding.itf.EncodingService;
 import org.kopi.socket.tcp.strategies.async.itf.Receiver;
+import org.kopi.util.encoding.itf.EncodingService;
 
 public class ConsoleReceiver implements Receiver {
 

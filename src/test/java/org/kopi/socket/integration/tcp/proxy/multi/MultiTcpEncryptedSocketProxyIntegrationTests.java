@@ -127,7 +127,7 @@ public class MultiTcpEncryptedSocketProxyIntegrationTests {
     private SocketServer createServer(Producer producer, Receiver receiver) {
         NoEncryptionService encryptionService = new NoEncryptionService();
         TcpSocketFactory socketFactory = new TcpSocketFactory(encryptionService);
-        return socketFactory.createAsyncServer(producer, receiver);
+        return socketFactory.createAsyncServer(() -> producer, () -> receiver);
     }
 
     private SocketClient createClient(Producer producer, Receiver receiver) {

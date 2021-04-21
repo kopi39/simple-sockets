@@ -1,5 +1,8 @@
 package org.kopi.util.async;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Async {
 
     public static Thread start(ThrowableRunnable throwableRunnable) {
@@ -20,13 +23,9 @@ public class Async {
                 }
                 Thread.sleep(interval);
             }
-            for (Thread thread : threads) {
-                thread.interrupt();
-            }
+            interruptAll(threads);
             onClose.run();
-            for (Thread thread : threads) {
-                thread.join();
-            }
+            joinAll(threads);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         } catch (Exception ex) {
@@ -39,6 +38,30 @@ public class Async {
             throwableRunnable.run();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    public static void joinAll(Thread... threads) {
+        joinAll(Arrays.asList(threads));
+    }
+
+    public static void joinAll(List<Thread> threads) {
+        try {
+            for (Thread thread : threads) {
+                thread.join();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public static void interruptAll(Thread... threads) {
+        interruptAll(Arrays.asList(threads));
+    }
+
+    public static void interruptAll(List<Thread> threads) {
+        for (Thread thread : threads) {
+            thread.interrupt();
         }
     }
 

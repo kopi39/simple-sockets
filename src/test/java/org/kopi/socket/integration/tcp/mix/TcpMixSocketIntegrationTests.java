@@ -153,7 +153,7 @@ public class TcpMixSocketIntegrationTests {
         SyncReceiverMock syncReceiver = new SyncReceiverMock(encodingService);
         EncryptionService encryptionService = new AesEncryptionService(IntegrationTestsConfig.TMP_KEY);
         TcpSocketFactory socketFactory = new TcpSocketFactory(encryptionService);
-        return socketFactory.createMixServer(producer, receiver, syncReceiver);
+        return socketFactory.createMixServer(() -> producer, () -> receiver, () -> syncReceiver);
     }
 
     private SocketClient createSyncClient(SyncProducer syncProducer) {

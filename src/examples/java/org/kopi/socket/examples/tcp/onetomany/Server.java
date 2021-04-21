@@ -1,4 +1,4 @@
-package org.kopi.socket.examples.tcp.sync;
+package org.kopi.socket.examples.tcp.onetomany;
 
 import org.kopi.socket.examples.config.Config;
 import org.kopi.socket.examples.tcp.general.SimpleServerSyncReceiver;
@@ -20,7 +20,7 @@ public class Server {
         TcpSocketFactory socketFactory = new TcpSocketFactory(encryptionService);
 
         try (SocketServer server = socketFactory.createSyncServer(syncReceiver)) {
-            server.start(Config.PORT);
+            server.start(Config.PORT, 3);
         }
     }
 

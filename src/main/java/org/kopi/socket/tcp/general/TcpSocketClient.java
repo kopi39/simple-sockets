@@ -1,5 +1,6 @@
 package org.kopi.socket.tcp.general;
 
+import org.kopi.socket.itf.OnConnect;
 import org.kopi.socket.itf.SocketClient;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.util.io.SafeClose;
@@ -33,11 +34,6 @@ public class TcpSocketClient implements SocketClient {
     public void close() {
         this.strategy.close();
         SafeClose.close(clientSocket);
-    }
-
-    @FunctionalInterface
-    public interface OnConnect {
-        void invoke(Socket socket) throws Exception;
     }
 
 }

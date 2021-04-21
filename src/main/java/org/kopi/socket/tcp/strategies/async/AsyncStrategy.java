@@ -1,12 +1,12 @@
 package org.kopi.socket.tcp.strategies.async;
 
+import org.kopi.socket.itf.SocketStrategy;
+import org.kopi.socket.tcp.strategies.async.itf.Producer;
+import org.kopi.socket.tcp.strategies.async.itf.Receiver;
 import org.kopi.util.async.Async;
 import org.kopi.util.io.ByteReader;
 import org.kopi.util.io.SafeClose;
 import org.kopi.util.security.itf.EncryptionService;
-import org.kopi.socket.itf.SocketStrategy;
-import org.kopi.socket.tcp.strategies.async.itf.Producer;
-import org.kopi.socket.tcp.strategies.async.itf.Receiver;
 
 import java.io.IOException;
 import java.io.OutputStream;

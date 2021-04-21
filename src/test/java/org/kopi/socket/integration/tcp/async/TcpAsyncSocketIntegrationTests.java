@@ -119,7 +119,7 @@ public class TcpAsyncSocketIntegrationTests {
     private SocketServer createServer(Producer producer, Receiver receiver) {
         AesEncryptionService encryptionService = new AesEncryptionService(IntegrationTestsConfig.TMP_KEY);
         TcpSocketFactory socketFactory = new TcpSocketFactory(encryptionService);
-        return socketFactory.createAsyncServer(producer, receiver);
+        return socketFactory.createAsyncServer(() -> producer, () -> receiver);
     }
 
     private SocketClient createClient(Producer producer, Receiver receiver) {

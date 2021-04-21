@@ -1,6 +1,5 @@
 package org.kopi.socket.tcp.general;
 
-import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.itf.StrategySelector;
 
 import java.io.IOException;
@@ -11,11 +10,11 @@ import java.util.List;
 public class FirstByteStrategySelector implements StrategySelector {
 
     @Override
-    public SocketStrategy select(Socket socket, List<SocketStrategy> strategies) {
+    public StrategyWrapper select(Socket socket, List<StrategyWrapper> strategies) {
         try {
             InputStream in = socket.getInputStream();
             int code = in.read();
-            for (SocketStrategy strategy : strategies) {
+            for (StrategyWrapper strategy : strategies) {
                 if (strategy.getStrategyCode() == code) {
                     return strategy;
                 }

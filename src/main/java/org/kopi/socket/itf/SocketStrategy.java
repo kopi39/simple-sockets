@@ -1,8 +1,9 @@
 package org.kopi.socket.itf;
 
+import java.io.Closeable;
 import java.net.Socket;
 
-public interface SocketStrategy extends AutoCloseable {
+public interface SocketStrategy extends AutoCloseable, Closeable {
     Result apply(Socket clientSocket);
 
     int getStrategyCode();
