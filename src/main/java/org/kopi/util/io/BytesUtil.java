@@ -4,9 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.SocketException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -75,16 +74,11 @@ public class BytesUtil {
         }
     }
 
-    private static int byteArrayToInt(byte[] bytes) {
-        final ByteBuffer bb = ByteBuffer.wrap(bytes);
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        return bb.getInt();
+    public static int byteArrayToInt(byte[] bytes) {
+        return new BigInteger(bytes).intValue();
     }
 
-    private static byte[] intToByteArray(int value) {
-        final ByteBuffer bb = ByteBuffer.allocate(Integer.SIZE / Byte.SIZE);
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        bb.putInt(value);
-        return bb.array();
+    public static byte[] intToByteArray(int value) {
+        return BigInteger.valueOf(value).toByteArray();
     }
 }

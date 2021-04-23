@@ -1,3 +1,4 @@
 /target/
 /.idea/
 /src/main/java/org/kopi/socket/ssl/
+*.iml
