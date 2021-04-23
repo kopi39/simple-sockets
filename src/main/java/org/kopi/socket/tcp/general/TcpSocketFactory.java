@@ -1,7 +1,13 @@
 package org.kopi.socket.tcp.general;
 
-import org.kopi.socket.itf.*;
+import org.kopi.socket.itf.OnConnect;
+import org.kopi.socket.itf.SocketClient;
+import org.kopi.socket.itf.SocketServer;
+import org.kopi.socket.itf.SocketStrategy;
+import org.kopi.socket.itf.StrategySelector;
+import org.kopi.socket.itf.StrategySupplier;
 import org.kopi.socket.tcp.proxy.ProxyStrategy;
+import org.kopi.socket.tcp.proxy.ProxyStrategy.ProxyType;
 import org.kopi.socket.tcp.proxy.interceptors.EncryptIncomingDecryptOutgoingInterceptor;
 import org.kopi.socket.tcp.proxy.interceptors.EncryptOutgoingDecryptIncomingInterceptor;
 import org.kopi.socket.tcp.proxy.itf.Interceptor;
@@ -66,7 +72,7 @@ public class TcpSocketFactory {
         StrategySelector selector = new AnyStrategySelector();
         Interceptor encryption = new EncryptIncomingDecryptOutgoingInterceptor(encryptionService);
         Interceptor[] interceptorsArray = concatInterceptors(interceptors, encryption);
-        StrategySupplier supplier = () -> new ProxyStrategy(host, port, interceptorsArray);
+        StrategySupplier supplier = () -> new ProxyStrategy(host, port, ProxyType.SERVER, interceptorsArray);
         return new SocketServerImpl(selector, this::doNothing, supplier);
     }
 
@@ -74,7 +80,7 @@ public class TcpSocketFactory {
         StrategySelector selector = new AnyStrategySelector();
         Interceptor encryption = new EncryptOutgoingDecryptIncomingInterceptor(encryptionService);
         Interceptor[] interceptorsArray = concatInterceptors(interceptors, encryption);
-        StrategySupplier supplier = () -> new ProxyStrategy(host, port, interceptorsArray);
+        StrategySupplier supplier = () -> new ProxyStrategy(host, port, ProxyType.CLIENT, interceptorsArray);
         return new SocketServerImpl(selector, this::doNothing, supplier);
     }
 

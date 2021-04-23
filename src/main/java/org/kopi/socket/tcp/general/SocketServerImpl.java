@@ -88,7 +88,8 @@ public class SocketServerImpl implements SocketServer {
             Thread clientThread = Async.start(() -> this.handleClient(client));
             clientThreads.add(clientThread);
         } catch (SocketException ex) {
-            if (!"Socket closed".equalsIgnoreCase(ex.getMessage())) {
+            String exMsg = ex.getMessage();
+            if (!"Socket closed".equalsIgnoreCase(exMsg) && !exMsg.startsWith("Interrupted function call")) {
                 throw new RuntimeException(ex);
             }
         } catch (Exception ex) {
