@@ -33,14 +33,6 @@ public class Async {
         }
     }
 
-    private static void wrapRunnable(ThrowableRunnable throwableRunnable) {
-        try {
-            throwableRunnable.run();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
     public static void joinAll(Thread... threads) {
         joinAll(Arrays.asList(threads));
     }
@@ -70,6 +62,14 @@ public class Async {
     public static void interruptAll(List<Thread> threads) {
         for (Thread thread : threads) {
             thread.interrupt();
+        }
+    }
+
+    private static void wrapRunnable(ThrowableRunnable throwableRunnable) {
+        try {
+            throwableRunnable.run();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
     }
 

@@ -1,11 +1,6 @@
 package org.kopi.socket.tcp.general;
 
-import org.kopi.socket.itf.OnConnect;
-import org.kopi.socket.itf.SocketClient;
-import org.kopi.socket.itf.SocketServer;
-import org.kopi.socket.itf.SocketStrategy;
-import org.kopi.socket.itf.StrategySelector;
-import org.kopi.socket.itf.StrategySupplier;
+import org.kopi.socket.itf.*;
 import org.kopi.socket.tcp.proxy.ProxyStrategy;
 import org.kopi.socket.tcp.proxy.ProxyStrategy.ProxyType;
 import org.kopi.socket.tcp.proxy.interceptors.EncryptIncomingDecryptOutgoingInterceptor;

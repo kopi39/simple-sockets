@@ -15,7 +15,7 @@ public class ConsoleReceiver implements Receiver {
     @Override
     public boolean process(byte[] data) {
         String message = this.encodingService.decode(data);
-        if(Config.CLOSE_SIGNAL.equals(message)) {
+        if (Config.CLOSE_SIGNAL.equals(message)) {
             return true;
         }
         System.out.println(message);

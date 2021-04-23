@@ -13,20 +13,20 @@ public class StrategyWrapper {
         this.strategySupplier = strategySupplier;
     }
 
-    public int getStrategyCode() {
-        return strategyCode;
-    }
-
-    public SocketStrategy createStrategy() {
-        return strategySupplier.create();
-    }
-
     public static StrategyWrapper wrap(StrategySupplier strategySupplier) {
         int code;
         try (SocketStrategy strategy = strategySupplier.create()) {
             code = strategy.getStrategyCode();
         }
         return new StrategyWrapper(code, strategySupplier);
+    }
+
+    public int getStrategyCode() {
+        return strategyCode;
+    }
+
+    public SocketStrategy createStrategy() {
+        return strategySupplier.create();
     }
 
 }

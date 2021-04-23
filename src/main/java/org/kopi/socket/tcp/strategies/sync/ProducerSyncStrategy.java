@@ -37,6 +37,16 @@ public class ProducerSyncStrategy implements SocketStrategy {
         }
     }
 
+    @Override
+    public int getStrategyCode() {
+        return CODE;
+    }
+
+    @Override
+    public void close() {
+        SafeClose.close(in, out, socket);
+    }
+
     private byte[] send(byte[] input) {
         try {
             byte[] encryptedInput = this.encryptionService.encrypt(input);
@@ -50,15 +60,5 @@ public class ProducerSyncStrategy implements SocketStrategy {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-    @Override
-    public int getStrategyCode() {
-        return CODE;
-    }
-
-    @Override
-    public void close() {
-        SafeClose.close(in, out, socket);
     }
 }

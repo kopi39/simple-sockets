@@ -54,6 +54,11 @@ public class AsyncStrategy implements SocketStrategy {
         return CODE;
     }
 
+    @Override
+    public void close() {
+        closeInternal();
+    }
+
     private void sendMessage(byte[] data) {
         try {
             byte[] encryptedData = this.encryptionService.encrypt(data);
@@ -82,10 +87,5 @@ public class AsyncStrategy implements SocketStrategy {
 
     private void closeInternal() {
         SafeClose.close(in, out, socket);
-    }
-
-    @Override
-    public void close() {
-        closeInternal();
     }
 }

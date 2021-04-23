@@ -10,11 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class ProxyStrategy implements SocketStrategy {
 
@@ -168,11 +164,11 @@ public class ProxyStrategy implements SocketStrategy {
                 .forEach(x -> this.toServerPipe.add(x::toServer));
     }
 
-    private interface PipeElem {
-        Optional<byte[]> apply(byte[] data);
+    public enum ProxyType {
+        SERVER, CLIENT, PASS_DATA
     }
 
-    public enum ProxyType {
-        SERVER, CLIENT, PASS_DATA;
+    private interface PipeElem {
+        Optional<byte[]> apply(byte[] data);
     }
 }

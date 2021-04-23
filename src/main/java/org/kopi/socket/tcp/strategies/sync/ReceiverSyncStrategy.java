@@ -15,15 +15,14 @@ public class ReceiverSyncStrategy implements SocketStrategy {
 
     private final EncryptionService encryptionService;
     private final SyncReceiver syncReceiver;
+    private Socket clientSocket;
+    private DataOutputStream out;
+    private ByteReader in;
 
     public ReceiverSyncStrategy(SyncReceiver syncReceiver, EncryptionService encryptionService) {
         this.encryptionService = encryptionService;
         this.syncReceiver = syncReceiver;
     }
-
-    private Socket clientSocket;
-    private DataOutputStream out;
-    private ByteReader in;
 
     @Override
     public Result apply(Socket clientSocket) {

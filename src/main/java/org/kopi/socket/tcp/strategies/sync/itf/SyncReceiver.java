@@ -9,14 +9,6 @@ public interface SyncReceiver {
         private boolean closeServer;
         private byte[] body;
 
-        public boolean isCloseServer() {
-            return closeServer;
-        }
-
-        public byte[] getBody() {
-            return body;
-        }
-
         public static Response closeServer() {
             Response response = new Response();
             response.closeServer = true;
@@ -27,6 +19,14 @@ public interface SyncReceiver {
             Response response = new Response();
             response.body = body;
             return response;
+        }
+
+        public boolean isCloseServer() {
+            return closeServer;
+        }
+
+        public byte[] getBody() {
+            return body;
         }
     }
 }
