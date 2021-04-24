@@ -67,13 +67,13 @@ public class TcpSocketFactory {
     public SocketServer createSyncServer(Supplier<SyncReceiver> syncReceiver) {
         StrategySelector strategySelector = new AnyStrategySelector();
         StrategySupplier supplier = strategyFactory.createSyncStrategy(syncReceiver);
-        return new SocketServerImpl(strategySelector, this::doNothing, supplier);
+        return new SocketServerImpl(strategySelector, supplier);
     }
 
     public SocketServer createAsyncServer(Supplier<Producer> producer, Supplier<Receiver> receiver) {
         StrategySelector strategySelector = new AnyStrategySelector();
         StrategySupplier supplier = strategyFactory.createAsyncStrategy(producer, receiver);
-        return new SocketServerImpl(strategySelector, this::doNothing, supplier);
+        return new SocketServerImpl(strategySelector, supplier);
     }
 
     public Builder createMixServer() {
@@ -83,19 +83,20 @@ public class TcpSocketFactory {
     public SocketServer createProxy(String host, int port, Interceptor... interceptors) {
         StrategySelector selector = new AnyStrategySelector();
         StrategySupplier supplier = strategyFactory.createPassingProxyStrategy(host, port, interceptors);
-        return new SocketServerImpl(selector, this::doNothing, supplier);
+        return new SocketServerImpl(selector, supplier);
     }
 
     public SocketServer createServerProxy(String host, int port, Interceptor... interceptors) {
         StrategySelector selector = new AnyStrategySelector();
         StrategySupplier supplier = strategyFactory.createProxyServerStrategy(host, port, interceptors);
-        return new SocketServerImpl(selector, this::doNothing, supplier);
+        return new SocketServerImpl(selector, supplier);
     }
 
-    public SocketServer createClientProxy(String host, int port, Interceptor... interceptors) {
+    public SocketServer createClientProxy(String host, int port, boolean serverIsMixed, Interceptor... interceptors) {
         StrategySelector selector = new AnyStrategySelector();
-        StrategySupplier supplier = strategyFactory.createProxyClientStrategy(host, port, interceptors);
-        return new SocketServerImpl(selector, this::doNothing, supplier);
+        StrategySupplier supplier = strategyFactory.createProxyClientStrategy(host, port, serverIsMixed, interceptors);
+
+        return new SocketServerImpl(selector, supplier);
     }
 
     public SocketClient createSyncClient(SyncProducer syncProducer, boolean serverIsMixed) {
@@ -168,20 +169,23 @@ public class TcpSocketFactory {
                     ProxyType.SERVER,
                     reader.get(),
                     writer.get(),
+                    TcpSocketFactory.this::doNothing,
                     createSimpleReader(),
                     createSimpleWriter(),
                     interceptorsArray);
         }
 
-        public StrategySupplier createProxyClientStrategy(String host, int port, Interceptor... interceptors) {
+        public StrategySupplier createProxyClientStrategy(String host, int port, boolean serverIsMixed, Interceptor... interceptors) {
             Interceptor encryption = new EncryptOutgoingDecryptIncomingInterceptor(encryptionService);
             Interceptor[] interceptorsArray = concatInterceptors(interceptors, encryption);
+            OnConnect onConnect = getOnConnect(ProxyStrategy.CODE, serverIsMixed);
             return () -> new ProxyStrategy(
                     host,
                     port,
                     ProxyType.CLIENT,
                     reader.get(),
                     writer.get(),
+                    onConnect,
                     createSimpleReader(),
                     createSimpleWriter(),
                     interceptorsArray);
@@ -212,8 +216,8 @@ public class TcpSocketFactory {
             return this.addStrategy(strategyFactory.createProxyServerStrategy(host, port, interceptors));
         }
 
-        public Builder addClientProxy(String host, int port, Interceptor... interceptors) {
-            return this.addStrategy(strategyFactory.createProxyClientStrategy(host, port, interceptors));
+        public Builder addClientProxy(String host, int port, boolean isServerMixed, Interceptor... interceptors) {
+            return this.addStrategy(strategyFactory.createProxyClientStrategy(host, port, isServerMixed, interceptors));
         }
 
         public Builder addPassingProxy(String host, int port, Interceptor... interceptors) {
@@ -232,7 +236,7 @@ public class TcpSocketFactory {
             StrategySupplier first = strategyList.remove(0);
             StrategySupplier[] others = strategyList.toArray(StrategySupplier[]::new);
             StrategySelector strategySelector = new FirstByteStrategySelector();
-            return new SocketServerImpl(strategySelector, TcpSocketFactory.this::doNothing, first, others);
+            return new SocketServerImpl(strategySelector, first, others);
         }
 
     }

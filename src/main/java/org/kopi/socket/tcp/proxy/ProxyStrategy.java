@@ -2,6 +2,7 @@ package org.kopi.socket.tcp.proxy;
 
 import org.kopi.socket.itf.BytesReader;
 import org.kopi.socket.itf.BytesWriter;
+import org.kopi.socket.itf.OnConnect;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.tcp.proxy.itf.Interceptor;
 import org.kopi.util.async.Async;
@@ -15,7 +16,7 @@ import java.util.*;
 
 public class ProxyStrategy implements SocketStrategy {
 
-    private static final int CODE = 4;
+    public static final int CODE = 4;
 
     private final List<PipeElem> toServerPipe = new ArrayList<>();
     private final List<PipeElem> toClientPipe = new ArrayList<>();
@@ -26,6 +27,7 @@ public class ProxyStrategy implements SocketStrategy {
     private final BytesWriter writer;
     private final BytesReader outReader;
     private final BytesWriter outWriter;
+    private final OnConnect onConnect;
 
     private Socket client;
     private OutputStream clientIn;
@@ -36,7 +38,7 @@ public class ProxyStrategy implements SocketStrategy {
     private InputStream serverOut;
 
     public ProxyStrategy(String host, int port, BytesReader reader, BytesWriter writer, Interceptor... interceptors) {
-        this(host, port, ProxyType.PASS_DATA, reader, writer, null, null, interceptors);
+        this(host, port, ProxyType.PASS_DATA, reader, writer, x -> {}, null, null, interceptors);
     }
 
     public ProxyStrategy(
@@ -45,6 +47,7 @@ public class ProxyStrategy implements SocketStrategy {
             ProxyType type,
             BytesReader reader,
             BytesWriter writer,
+            OnConnect onConnect,
             BytesReader outReader,
             BytesWriter outWriter,
             Interceptor... interceptors) {
@@ -53,6 +56,7 @@ public class ProxyStrategy implements SocketStrategy {
         this.type = type;
         this.reader = reader;
         this.writer = writer;
+        this.onConnect = onConnect;
         this.outReader = outReader;
         this.outWriter = outWriter;
         this.createPipes(interceptors);
@@ -89,11 +93,12 @@ public class ProxyStrategy implements SocketStrategy {
             this.clientOut = client.getInputStream();
 
             this.server = new Socket(host, port);
+            this.onConnect.invoke(this.server);
             this.serverIn = server.getOutputStream();
             this.serverOut = server.getInputStream();
 
             return true;
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             System.out.printf("Proxy server can't connect to %s:%d - %s", host, port, ex.getMessage());
         }
         return false;

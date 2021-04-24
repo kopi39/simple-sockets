@@ -11,7 +11,7 @@ public class Proxy2 {
     public static void main(String[] args) {
         EncryptionService encryptionService = new AesEncryptionService(Config.TMP_KEY);
         TcpSocketFactory socketFactory = new TcpSocketFactory(encryptionService);
-        try (SocketServer proxyServer = socketFactory.createClientProxy(Config.HOST, Config.PROXY_PORT)) {
+        try (SocketServer proxyServer = socketFactory.createClientProxy(Config.HOST, Config.PROXY_PORT, false)) {
             proxyServer.start(Config.PROXY_2_PORT);
         }
     }

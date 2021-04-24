@@ -22,7 +22,7 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.List;
 
-public class MultiTcpEncryptedSocketProxyIntegrationTests {
+public class MultiTcpEncryptedSocketProxyWithMixesServerIntegrationTests {
 
     private final List<String> serverMessages = Arrays.asList("server", "X", "messages");
     private ReceiverMock serverReceiver;
@@ -105,13 +105,15 @@ public class MultiTcpEncryptedSocketProxyIntegrationTests {
     private SocketServer createServerProxy() {
         EncryptionService encryptionService = new AesEncryptionService(IntegrationTestsConfig.TMP_KEY);
         TcpSocketFactory socketFactory = new TcpSocketFactory(encryptionService);
-        return socketFactory.createServerProxy(IntegrationTestsConfig.HOST, IntegrationTestsConfig.PORT);
+        return socketFactory.createMixServer()
+                .addServerProxy(IntegrationTestsConfig.HOST, IntegrationTestsConfig.PORT)
+                .build();
     }
 
     private SocketServer createClientProxy() {
         EncryptionService encryptionService = new AesEncryptionService(IntegrationTestsConfig.TMP_KEY);
         TcpSocketFactory socketFactory = new TcpSocketFactory(encryptionService);
-        return socketFactory.createClientProxy(IntegrationTestsConfig.HOST, IntegrationTestsConfig.PROXY_PORT, false);
+        return socketFactory.createClientProxy(IntegrationTestsConfig.HOST, IntegrationTestsConfig.PROXY_PORT, true);
     }
 
     private ProducerMock createProducer(List<String> messagesToSend) {

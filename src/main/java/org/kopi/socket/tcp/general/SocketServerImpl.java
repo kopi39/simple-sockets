@@ -21,7 +21,6 @@ public class SocketServerImpl implements SocketServer {
     private final AtomicBoolean stopServer = new AtomicBoolean(false);
     private final List<StrategyWrapper> strategies = new ArrayList<>();
     private final StrategySelector strategySelector;
-    private final OnConnect onConnect;
 
     private final List<Client> clients = Collections.synchronizedList(new ArrayList<>());
     private final List<Thread> clientThreads = Collections.synchronizedList(new ArrayList<>());
@@ -29,10 +28,8 @@ public class SocketServerImpl implements SocketServer {
     private ServerSocket serverSocket;
     private int maxConnections;
 
-
-    public SocketServerImpl(StrategySelector selector, OnConnect onConnect, StrategySupplier strategy, StrategySupplier... other) {
+    public SocketServerImpl(StrategySelector selector, StrategySupplier strategy, StrategySupplier... other) {
         this.strategySelector = selector;
-        this.onConnect = onConnect;
         this.strategies.add(StrategyWrapper.wrap(strategy));
         Arrays.stream(other).map(StrategyWrapper::wrap).forEach(this.strategies::add);
     }
@@ -84,7 +81,6 @@ public class SocketServerImpl implements SocketServer {
                 return;
             }
             this.clients.add(client);
-            this.onConnect.invoke(client.socket);
             Thread clientThread = Async.start(() -> this.handleClient(client));
             clientThreads.add(clientThread);
         } catch (SocketException ex) {
