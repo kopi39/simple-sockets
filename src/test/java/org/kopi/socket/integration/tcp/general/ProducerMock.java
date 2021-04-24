@@ -1,10 +1,10 @@
 package org.kopi.socket.integration.tcp.general;
 
+import org.kopi.socket.ctype.tcp.async.itf.Producer;
+import org.kopi.socket.ctype.tcp.async.itf.Sender;
 import org.kopi.socket.integration.config.IntegrationTestsConfig;
-import org.kopi.socket.tcp.strategies.async.itf.Producer;
-import org.kopi.socket.tcp.strategies.async.itf.Sender;
-import org.kopi.util.async.Async;
-import org.kopi.util.encoding.itf.EncodingService;
+import org.kopi.socket.util.async.Async;
+import org.kopi.socket.util.encoding.itf.EncodingService;
 
 import java.util.List;
 

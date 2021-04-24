@@ -1,11 +1,11 @@
 package org.kopi.socket.examples.tcp.proxy.single;
 
+import org.kopi.socket.ctype.tcp.proxy.itf.Interceptor;
 import org.kopi.socket.examples.config.Config;
 import org.kopi.socket.examples.tcp.general.SimpleInterceptor;
+import org.kopi.socket.general.TcpSocketFactory;
 import org.kopi.socket.itf.SocketServer;
-import org.kopi.socket.tcp.general.TcpSocketFactory;
-import org.kopi.socket.tcp.proxy.itf.Interceptor;
-import org.kopi.util.encoding.Utf8EncodingService;
+import org.kopi.socket.util.encoding.Utf8EncodingService;
 
 public class Proxy {
 

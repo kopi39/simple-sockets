@@ -1,15 +1,15 @@
 package org.kopi.socket.examples.tcp.proxy.multi;
 
+import org.kopi.socket.ctype.tcp.async.itf.Producer;
+import org.kopi.socket.ctype.tcp.async.itf.Receiver;
 import org.kopi.socket.examples.config.Config;
 import org.kopi.socket.examples.tcp.general.ConsoleProducer;
 import org.kopi.socket.examples.tcp.general.ConsoleReceiver;
+import org.kopi.socket.general.TcpSocketFactory;
 import org.kopi.socket.itf.SocketServer;
-import org.kopi.socket.tcp.general.TcpSocketFactory;
-import org.kopi.socket.tcp.strategies.async.itf.Producer;
-import org.kopi.socket.tcp.strategies.async.itf.Receiver;
-import org.kopi.util.encoding.Utf8EncodingService;
-import org.kopi.util.security.NoEncryptionService;
-import org.kopi.util.security.itf.EncryptionService;
+import org.kopi.socket.util.encoding.Utf8EncodingService;
+import org.kopi.socket.util.security.NoEncryptionService;
+import org.kopi.socket.util.security.itf.EncryptionService;
 
 import java.util.function.Supplier;
 

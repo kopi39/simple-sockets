@@ -1,8 +1,8 @@
 package org.kopi.socket.integration.tcp.general;
 
+import org.kopi.socket.ctype.tcp.sync.itf.SyncReceiver;
 import org.kopi.socket.integration.config.IntegrationTestsConfig;
-import org.kopi.socket.tcp.strategies.sync.itf.SyncReceiver;
-import org.kopi.util.encoding.itf.EncodingService;
+import org.kopi.socket.util.encoding.itf.EncodingService;
 
 public class SyncReceiverMock implements SyncReceiver {
 

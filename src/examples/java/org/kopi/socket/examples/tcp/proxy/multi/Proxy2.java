@@ -1,10 +1,10 @@
 package org.kopi.socket.examples.tcp.proxy.multi;
 
 import org.kopi.socket.examples.config.Config;
+import org.kopi.socket.general.TcpSocketFactory;
 import org.kopi.socket.itf.SocketServer;
-import org.kopi.socket.tcp.general.TcpSocketFactory;
-import org.kopi.util.security.AesEncryptionService;
-import org.kopi.util.security.itf.EncryptionService;
+import org.kopi.socket.util.security.AesEncryptionService;
+import org.kopi.socket.util.security.itf.EncryptionService;
 
 public class Proxy2 {
 
