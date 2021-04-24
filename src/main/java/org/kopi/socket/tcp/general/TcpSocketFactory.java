@@ -151,7 +151,8 @@ public class TcpSocketFactory {
     }
 
     private BytesReader createSimpleReader() {
-        return x -> BytesUtil.read(x, new byte[BUFF_SIZE]);
+        final byte[] buff = new byte[BUFF_SIZE];
+        return x -> BytesUtil.read(x, buff);
     }
 
     private BytesWriter createSimpleWriter() {
