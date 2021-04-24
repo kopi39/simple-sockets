@@ -19,12 +19,16 @@ import org.kopi.util.security.itf.EncryptionService;
 
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class TcpSocketFactory {
 
     private static final int BUFF_SIZE = 1024;
+
+    private final StrategyFactory strategyFactory = new StrategyFactory();
 
     private Supplier<BytesReader> reader = () -> BytesUtil::readDynamic;
     private Supplier<BytesWriter> writer = () -> BytesUtil::writeDynamic;
@@ -62,58 +66,35 @@ public class TcpSocketFactory {
 
     public SocketServer createSyncServer(Supplier<SyncReceiver> syncReceiver) {
         StrategySelector strategySelector = new AnyStrategySelector();
-        StrategySupplier supplier = () -> new ReceiverSyncStrategy(syncReceiver.get(), reader.get(), writer.get(), encryptionService);
+        StrategySupplier supplier = strategyFactory.createSyncStrategy(syncReceiver);
         return new SocketServerImpl(strategySelector, this::doNothing, supplier);
     }
 
     public SocketServer createAsyncServer(Supplier<Producer> producer, Supplier<Receiver> receiver) {
         StrategySelector strategySelector = new AnyStrategySelector();
-        StrategySupplier supplier = () -> new AsyncStrategy(producer.get(), receiver.get(), reader.get(), writer.get(), encryptionService);
+        StrategySupplier supplier = strategyFactory.createAsyncStrategy(producer, receiver);
         return new SocketServerImpl(strategySelector, this::doNothing, supplier);
     }
 
-    public SocketServer createMixServer(Supplier<Producer> producer, Supplier<Receiver> receiver, Supplier<SyncReceiver> syncReceiver) {
-        StrategySelector strategySelector = new FirstByteStrategySelector();
-        StrategySupplier syncSupplier = () -> new ReceiverSyncStrategy(syncReceiver.get(), reader.get(), writer.get(), encryptionService);
-        StrategySupplier asyncSupplier = () -> new AsyncStrategy(producer.get(), receiver.get(), BytesUtil::readDynamic, BytesUtil::writeDynamic, encryptionService);
-        return new SocketServerImpl(strategySelector, this::doNothing, syncSupplier, asyncSupplier);
+    public Builder createMixServer() {
+        return new Builder();
     }
 
     public SocketServer createProxy(String host, int port, Interceptor... interceptors) {
         StrategySelector selector = new AnyStrategySelector();
-        StrategySupplier supplier = () -> new ProxyStrategy(host, port, reader.get(), writer.get(), interceptors);
+        StrategySupplier supplier = strategyFactory.createPassingProxyStrategy(host, port, interceptors);
         return new SocketServerImpl(selector, this::doNothing, supplier);
     }
 
     public SocketServer createServerProxy(String host, int port, Interceptor... interceptors) {
         StrategySelector selector = new AnyStrategySelector();
-        Interceptor encryption = new EncryptIncomingDecryptOutgoingInterceptor(encryptionService);
-        Interceptor[] interceptorsArray = concatInterceptors(interceptors, encryption);
-        StrategySupplier supplier = () -> new ProxyStrategy(
-                host,
-                port,
-                ProxyType.SERVER,
-                reader.get(),
-                writer.get(),
-                createSimpleReader(),
-                createSimpleWriter(),
-                interceptorsArray);
+        StrategySupplier supplier = strategyFactory.createProxyServerStrategy(host, port, interceptors);
         return new SocketServerImpl(selector, this::doNothing, supplier);
     }
 
     public SocketServer createClientProxy(String host, int port, Interceptor... interceptors) {
         StrategySelector selector = new AnyStrategySelector();
-        Interceptor encryption = new EncryptOutgoingDecryptIncomingInterceptor(encryptionService);
-        Interceptor[] interceptorsArray = concatInterceptors(interceptors, encryption);
-        StrategySupplier supplier = () -> new ProxyStrategy(
-                host,
-                port,
-                ProxyType.CLIENT,
-                reader.get(),
-                writer.get(),
-                createSimpleReader(),
-                createSimpleWriter(),
-                interceptorsArray);
+        StrategySupplier supplier = strategyFactory.createProxyClientStrategy(host, port, interceptors);
         return new SocketServerImpl(selector, this::doNothing, supplier);
     }
 
@@ -157,5 +138,102 @@ public class TcpSocketFactory {
 
     private BytesWriter createSimpleWriter() {
         return BytesUtil::write;
+    }
+
+    public class StrategyFactory {
+
+        public StrategySupplier createSyncStrategy(Supplier<SyncReceiver> syncReceiver) {
+            return () -> new ReceiverSyncStrategy(
+                    syncReceiver.get(),
+                    reader.get(),
+                    writer.get(),
+                    encryptionService);
+        }
+
+        public StrategySupplier createAsyncStrategy(Supplier<Producer> producer, Supplier<Receiver> receiver) {
+            return () -> new AsyncStrategy(
+                    producer.get(),
+                    receiver.get(),
+                    reader.get(),
+                    writer.get(),
+                    encryptionService);
+        }
+
+        public StrategySupplier createProxyServerStrategy(String host, int port, Interceptor... interceptors) {
+            Interceptor encryption = new EncryptIncomingDecryptOutgoingInterceptor(encryptionService);
+            Interceptor[] interceptorsArray = concatInterceptors(interceptors, encryption);
+            return () -> new ProxyStrategy(
+                    host,
+                    port,
+                    ProxyType.SERVER,
+                    reader.get(),
+                    writer.get(),
+                    createSimpleReader(),
+                    createSimpleWriter(),
+                    interceptorsArray);
+        }
+
+        public StrategySupplier createProxyClientStrategy(String host, int port, Interceptor... interceptors) {
+            Interceptor encryption = new EncryptOutgoingDecryptIncomingInterceptor(encryptionService);
+            Interceptor[] interceptorsArray = concatInterceptors(interceptors, encryption);
+            return () -> new ProxyStrategy(
+                    host,
+                    port,
+                    ProxyType.CLIENT,
+                    reader.get(),
+                    writer.get(),
+                    createSimpleReader(),
+                    createSimpleWriter(),
+                    interceptorsArray);
+        }
+
+        public StrategySupplier createPassingProxyStrategy(String host, int port, Interceptor... interceptors) {
+            return () -> new ProxyStrategy(host, port, reader.get(), writer.get(), interceptors);
+        }
+    }
+
+    public class Builder {
+
+        private final List<StrategySupplier> strategyList = new ArrayList<>();
+
+        private Builder() {
+            super();
+        }
+
+        public Builder addSyncStrategy(Supplier<SyncReceiver> syncReceiver) {
+            return this.addStrategy(strategyFactory.createSyncStrategy(syncReceiver));
+        }
+
+        public Builder addAsyncStrategy(Supplier<Producer> producer, Supplier<Receiver> receiver) {
+            return this.addStrategy(strategyFactory.createAsyncStrategy(producer, receiver));
+        }
+
+        public Builder addServerProxy(String host, int port, Interceptor... interceptors) {
+            return this.addStrategy(strategyFactory.createProxyServerStrategy(host, port, interceptors));
+        }
+
+        public Builder addClientProxy(String host, int port, Interceptor... interceptors) {
+            return this.addStrategy(strategyFactory.createProxyClientStrategy(host, port, interceptors));
+        }
+
+        public Builder addPassingProxy(String host, int port, Interceptor... interceptors) {
+            return this.addStrategy(strategyFactory.createPassingProxyStrategy(host, port, interceptors));
+        }
+
+        public Builder addStrategy(StrategySupplier supplier) {
+            this.strategyList.add(supplier);
+            return this;
+        }
+
+        public SocketServer build() {
+            if (strategyList.isEmpty()) {
+                throw new IllegalArgumentException("At least one strategy must be defined");
+            }
+            StrategySupplier first = strategyList.remove(0);
+            StrategySupplier[] others = strategyList.toArray(StrategySupplier[]::new);
+            StrategySelector strategySelector = new FirstByteStrategySelector();
+            return new SocketServerImpl(strategySelector, TcpSocketFactory.this::doNothing, first, others);
+        }
+
     }
 }

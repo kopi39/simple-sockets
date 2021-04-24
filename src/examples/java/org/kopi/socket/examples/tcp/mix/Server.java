@@ -24,7 +24,11 @@ public class Server {
         Supplier<SyncReceiver> interpreter = () -> new SimpleServerSyncReceiver(encodingService);
         TcpSocketFactory socketFactory = new TcpSocketFactory(encryptionService);
 
-        try (SocketServer server = socketFactory.createMixServer(producer, receiver, interpreter)) {
+        TcpSocketFactory.Builder builder = socketFactory.createMixServer()
+                .addSyncStrategy(interpreter)
+                .addAsyncStrategy(producer, receiver);
+
+        try (SocketServer server = builder.build()) {
             server.start(Config.PORT);
         }
     }
