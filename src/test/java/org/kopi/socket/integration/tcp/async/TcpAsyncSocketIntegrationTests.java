@@ -1,17 +1,17 @@
 package org.kopi.socket.integration.tcp.async;
 
+import org.kopi.socket.ctype.tcp.async.itf.Producer;
+import org.kopi.socket.ctype.tcp.async.itf.Receiver;
+import org.kopi.socket.general.TcpSocketFactory;
 import org.kopi.socket.integration.config.IntegrationTestsConfig;
 import org.kopi.socket.integration.tcp.general.ProducerMock;
 import org.kopi.socket.integration.tcp.general.ReceiverMock;
 import org.kopi.socket.itf.SocketClient;
 import org.kopi.socket.itf.SocketServer;
-import org.kopi.socket.tcp.general.TcpSocketFactory;
-import org.kopi.socket.tcp.strategies.async.itf.Producer;
-import org.kopi.socket.tcp.strategies.async.itf.Receiver;
-import org.kopi.util.async.Async;
-import org.kopi.util.encoding.Utf8EncodingService;
-import org.kopi.util.io.SafeClose;
-import org.kopi.util.security.AesEncryptionService;
+import org.kopi.socket.util.async.Async;
+import org.kopi.socket.util.encoding.Utf8EncodingService;
+import org.kopi.socket.util.io.SafeClose;
+import org.kopi.socket.util.security.AesEncryptionService;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;

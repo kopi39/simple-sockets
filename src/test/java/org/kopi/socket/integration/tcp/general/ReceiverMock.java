@@ -1,8 +1,8 @@
 package org.kopi.socket.integration.tcp.general;
 
+import org.kopi.socket.ctype.tcp.async.itf.Receiver;
 import org.kopi.socket.integration.config.IntegrationTestsConfig;
-import org.kopi.socket.tcp.strategies.async.itf.Receiver;
-import org.kopi.util.encoding.itf.EncodingService;
+import org.kopi.socket.util.encoding.itf.EncodingService;
 
 import java.util.ArrayList;
 import java.util.List;

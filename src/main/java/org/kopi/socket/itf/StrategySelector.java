@@ -1,6 +1,6 @@
 package org.kopi.socket.itf;
 
-import org.kopi.socket.tcp.general.StrategyWrapper;
+import org.kopi.socket.general.StrategyWrapper;
 
 import java.net.Socket;
 import java.util.List;

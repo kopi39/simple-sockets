@@ -1,7 +1,7 @@
 package org.kopi.socket.examples.tcp.general;
 
-import org.kopi.socket.tcp.proxy.itf.Interceptor;
-import org.kopi.util.encoding.itf.EncodingService;
+import org.kopi.socket.ctype.tcp.proxy.itf.Interceptor;
+import org.kopi.socket.util.encoding.itf.EncodingService;
 
 import java.util.Optional;
 

@@ -17,16 +17,16 @@ public interface SocketStrategy extends AutoCloseable, Closeable {
             this.stopServer = stopServer;
         }
 
-        public boolean isStopServer() {
-            return stopServer;
-        }
-
         public static Result stopServer() {
             return new Result(true);
         }
 
         public static Result disconnectClient() {
             return new Result(false);
+        }
+
+        public boolean isStopServer() {
+            return stopServer;
         }
     }
 }

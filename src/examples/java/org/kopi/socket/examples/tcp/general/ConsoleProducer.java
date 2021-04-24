@@ -1,9 +1,10 @@
 package org.kopi.socket.examples.tcp.general;
 
+import org.kopi.socket.ctype.tcp.async.itf.Producer;
+import org.kopi.socket.ctype.tcp.async.itf.Sender;
 import org.kopi.socket.examples.config.Config;
-import org.kopi.socket.tcp.strategies.async.itf.Producer;
-import org.kopi.socket.tcp.strategies.async.itf.Sender;
-import org.kopi.util.encoding.itf.EncodingService;
+import org.kopi.socket.util.async.Async;
+import org.kopi.socket.util.encoding.itf.EncodingService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,14 +29,14 @@ public class ConsoleProducer implements Producer {
         }
     }
 
-    public void processInternal(Sender sender) throws InterruptedException, IOException {
+    public void processInternal(Sender sender) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
             if (System.in.available() <= 0) {
-                Thread.sleep(INTERVAL);
+                Async.sleep(INTERVAL);
                 continue;
             }
             String message = reader.readLine();

@@ -1,10 +1,10 @@
 package org.kopi.socket.examples.tcp.general;
 
+import org.kopi.socket.ctype.tcp.sync.itf.Sender;
+import org.kopi.socket.ctype.tcp.sync.itf.SyncProducer;
 import org.kopi.socket.examples.config.Config;
 import org.kopi.socket.itf.SocketStrategy;
-import org.kopi.socket.tcp.strategies.sync.itf.Sender;
-import org.kopi.socket.tcp.strategies.sync.itf.SyncProducer;
-import org.kopi.util.encoding.itf.EncodingService;
+import org.kopi.socket.util.encoding.itf.EncodingService;
 
 import java.util.Scanner;
 
