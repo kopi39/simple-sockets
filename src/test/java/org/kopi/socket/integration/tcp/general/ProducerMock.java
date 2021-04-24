@@ -3,6 +3,7 @@ package org.kopi.socket.integration.tcp.general;
 import org.kopi.socket.integration.config.IntegrationTestsConfig;
 import org.kopi.socket.tcp.strategies.async.itf.Producer;
 import org.kopi.socket.tcp.strategies.async.itf.Sender;
+import org.kopi.util.async.Async;
 import org.kopi.util.encoding.itf.EncodingService;
 
 import java.util.List;
@@ -22,14 +23,10 @@ public class ProducerMock implements Producer {
         for (String message : messagesToSend) {
             byte[] encodedMessage = this.encodingService.encode(message);
             sender.send(encodedMessage);
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                // may be silent
-            }
             if (IntegrationTestsConfig.CLOSE_SIGNAL.equalsIgnoreCase(message)) {
                 break;
             }
         }
+        Async.sleep(100);
     }
 }

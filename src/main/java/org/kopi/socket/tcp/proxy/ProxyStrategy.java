@@ -1,9 +1,10 @@
 package org.kopi.socket.tcp.proxy;
 
+import org.kopi.socket.itf.BytesReader;
+import org.kopi.socket.itf.BytesWriter;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.tcp.proxy.itf.Interceptor;
 import org.kopi.util.async.Async;
-import org.kopi.util.io.BytesUtil;
 import org.kopi.util.io.SafeClose;
 
 import java.io.IOException;
@@ -15,13 +16,16 @@ import java.util.*;
 public class ProxyStrategy implements SocketStrategy {
 
     private static final int CODE = 4;
-    private static final int BUFF_SIZE = 1024;
 
     private final List<PipeElem> toServerPipe = new ArrayList<>();
     private final List<PipeElem> toClientPipe = new ArrayList<>();
     private final String host;
     private final int port;
     private final ProxyType type;
+    private final BytesReader reader;
+    private final BytesWriter writer;
+    private final BytesReader outReader;
+    private final BytesWriter outWriter;
 
     private Socket client;
     private OutputStream clientIn;
@@ -31,14 +35,26 @@ public class ProxyStrategy implements SocketStrategy {
     private OutputStream serverIn;
     private InputStream serverOut;
 
-    public ProxyStrategy(String host, int port, Interceptor... interceptors) {
-        this(host, port, ProxyType.PASS_DATA, interceptors);
+    public ProxyStrategy(String host, int port, BytesReader reader, BytesWriter writer, Interceptor... interceptors) {
+        this(host, port, ProxyType.PASS_DATA, reader, writer, null, null, interceptors);
     }
 
-    public ProxyStrategy(String host, int port, ProxyType type, Interceptor... interceptors) {
+    public ProxyStrategy(
+            String host,
+            int port,
+            ProxyType type,
+            BytesReader reader,
+            BytesWriter writer,
+            BytesReader outReader,
+            BytesWriter outWriter,
+            Interceptor... interceptors) {
         this.host = host;
         this.port = port;
         this.type = type;
+        this.reader = reader;
+        this.writer = writer;
+        this.outReader = outReader;
+        this.outWriter = outWriter;
         this.createPipes(interceptors);
     }
 
@@ -84,37 +100,35 @@ public class ProxyStrategy implements SocketStrategy {
     }
 
     private void readNormalPassDynamic(InputStream out, OutputStream in, List<PipeElem> pipe) throws IOException {
-        byte[] buff = new byte[BUFF_SIZE];
         while (true) {
-            byte[] received = BytesUtil.read(out, buff).orElse(null);
+            byte[] received = outReader.read(out).orElse(null);
             if (received == null) {
                 break;
             }
             byte[] intercepted = applyPipe(received, pipe).orElse(null);
-            BytesUtil.writeDynamic(in, intercepted);
+            writer.write(in, intercepted);
         }
     }
 
     private void readNormalPassNormal(InputStream out, OutputStream in, List<PipeElem> pipe) throws IOException {
-        byte[] buff = new byte[BUFF_SIZE];
         while (true) {
-            byte[] received = BytesUtil.read(out, buff).orElse(null);
+            byte[] received = reader.read(out).orElse(null);
             if (received == null) {
                 break;
             }
             byte[] intercepted = applyPipe(received, pipe).orElse(null);
-            BytesUtil.write(in, intercepted);
+            writer.write(in, intercepted);
         }
     }
 
     private void readDynamicPassNormal(InputStream out, OutputStream in, List<PipeElem> pipe) throws IOException {
         while (true) {
-            byte[] body = BytesUtil.readDynamic(out).orElse(null);
+            byte[] body = reader.read(out).orElse(null);
             if (body == null) {
                 return;
             }
             byte[] intercepted = applyPipe(body, pipe).orElse(null);
-            BytesUtil.write(in, intercepted);
+            outWriter.write(in, intercepted);
         }
     }
 

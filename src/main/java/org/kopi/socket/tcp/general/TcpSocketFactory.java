@@ -13,6 +13,7 @@ import org.kopi.socket.tcp.strategies.sync.ProducerSyncStrategy;
 import org.kopi.socket.tcp.strategies.sync.ReceiverSyncStrategy;
 import org.kopi.socket.tcp.strategies.sync.itf.SyncProducer;
 import org.kopi.socket.tcp.strategies.sync.itf.SyncReceiver;
+import org.kopi.util.io.BytesUtil;
 import org.kopi.util.security.NoEncryptionService;
 import org.kopi.util.security.itf.EncryptionService;
 
@@ -22,6 +23,11 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class TcpSocketFactory {
+
+    private static final int BUFF_SIZE = 1024;
+
+    private Supplier<BytesReader> reader = () -> BytesUtil::readDynamic;
+    private Supplier<BytesWriter> writer = () -> BytesUtil::writeDynamic;
 
     private EncryptionService encryptionService;
 
@@ -38,28 +44,44 @@ public class TcpSocketFactory {
         return this;
     }
 
+    public TcpSocketFactory useSimpleReaderAndWriter() {
+        this.reader = this::createSimpleReader;
+        this.writer = this::createSimpleWriter;
+        return this;
+    }
+
+    public TcpSocketFactory setReader(Supplier<BytesReader> reader) {
+        this.reader = reader;
+        return this;
+    }
+
+    public TcpSocketFactory setWriter(Supplier<BytesWriter> writer) {
+        this.writer = writer;
+        return this;
+    }
+
     public SocketServer createSyncServer(Supplier<SyncReceiver> syncReceiver) {
         StrategySelector strategySelector = new AnyStrategySelector();
-        StrategySupplier supplier = () -> new ReceiverSyncStrategy(syncReceiver.get(), encryptionService);
+        StrategySupplier supplier = () -> new ReceiverSyncStrategy(syncReceiver.get(), reader.get(), writer.get(), encryptionService);
         return new SocketServerImpl(strategySelector, this::doNothing, supplier);
     }
 
     public SocketServer createAsyncServer(Supplier<Producer> producer, Supplier<Receiver> receiver) {
         StrategySelector strategySelector = new AnyStrategySelector();
-        StrategySupplier supplier = () -> new AsyncStrategy(producer.get(), receiver.get(), encryptionService);
+        StrategySupplier supplier = () -> new AsyncStrategy(producer.get(), receiver.get(), reader.get(), writer.get(), encryptionService);
         return new SocketServerImpl(strategySelector, this::doNothing, supplier);
     }
 
     public SocketServer createMixServer(Supplier<Producer> producer, Supplier<Receiver> receiver, Supplier<SyncReceiver> syncReceiver) {
         StrategySelector strategySelector = new FirstByteStrategySelector();
-        StrategySupplier syncSupplier = () -> new ReceiverSyncStrategy(syncReceiver.get(), encryptionService);
-        StrategySupplier asyncSupplier = () -> new AsyncStrategy(producer.get(), receiver.get(), encryptionService);
+        StrategySupplier syncSupplier = () -> new ReceiverSyncStrategy(syncReceiver.get(), reader.get(), writer.get(), encryptionService);
+        StrategySupplier asyncSupplier = () -> new AsyncStrategy(producer.get(), receiver.get(), BytesUtil::readDynamic, BytesUtil::writeDynamic, encryptionService);
         return new SocketServerImpl(strategySelector, this::doNothing, syncSupplier, asyncSupplier);
     }
 
     public SocketServer createProxy(String host, int port, Interceptor... interceptors) {
         StrategySelector selector = new AnyStrategySelector();
-        StrategySupplier supplier = () -> new ProxyStrategy(host, port, interceptors);
+        StrategySupplier supplier = () -> new ProxyStrategy(host, port, reader.get(), writer.get(), interceptors);
         return new SocketServerImpl(selector, this::doNothing, supplier);
     }
 
@@ -67,7 +89,15 @@ public class TcpSocketFactory {
         StrategySelector selector = new AnyStrategySelector();
         Interceptor encryption = new EncryptIncomingDecryptOutgoingInterceptor(encryptionService);
         Interceptor[] interceptorsArray = concatInterceptors(interceptors, encryption);
-        StrategySupplier supplier = () -> new ProxyStrategy(host, port, ProxyType.SERVER, interceptorsArray);
+        StrategySupplier supplier = () -> new ProxyStrategy(
+                host,
+                port,
+                ProxyType.SERVER,
+                reader.get(),
+                writer.get(),
+                createSimpleReader(),
+                createSimpleWriter(),
+                interceptorsArray);
         return new SocketServerImpl(selector, this::doNothing, supplier);
     }
 
@@ -75,18 +105,26 @@ public class TcpSocketFactory {
         StrategySelector selector = new AnyStrategySelector();
         Interceptor encryption = new EncryptOutgoingDecryptIncomingInterceptor(encryptionService);
         Interceptor[] interceptorsArray = concatInterceptors(interceptors, encryption);
-        StrategySupplier supplier = () -> new ProxyStrategy(host, port, ProxyType.CLIENT, interceptorsArray);
+        StrategySupplier supplier = () -> new ProxyStrategy(
+                host,
+                port,
+                ProxyType.CLIENT,
+                reader.get(),
+                writer.get(),
+                createSimpleReader(),
+                createSimpleWriter(),
+                interceptorsArray);
         return new SocketServerImpl(selector, this::doNothing, supplier);
     }
 
     public SocketClient createSyncClient(SyncProducer syncProducer, boolean serverIsMixed) {
-        SocketStrategy strategy = new ProducerSyncStrategy(syncProducer, encryptionService);
+        SocketStrategy strategy = new ProducerSyncStrategy(syncProducer, reader.get(), writer.get(), encryptionService);
         OnConnect onConnect = getOnConnect(ReceiverSyncStrategy.CODE, serverIsMixed);
         return new TcpSocketClient(strategy, onConnect);
     }
 
     public SocketClient createAsyncClient(Producer producer, Receiver receiver, boolean serverIsMixed) {
-        SocketStrategy strategy = new AsyncStrategy(producer, receiver, encryptionService);
+        SocketStrategy strategy = new AsyncStrategy(producer, receiver, reader.get(), writer.get(), encryptionService);
         OnConnect onConnect = getOnConnect(AsyncStrategy.CODE, serverIsMixed);
         return new TcpSocketClient(strategy, onConnect);
     }
@@ -110,5 +148,13 @@ public class TcpSocketFactory {
         OutputStream out = clientSocket.getOutputStream();
         out.write(code);
         out.flush();
+    }
+
+    private BytesReader createSimpleReader() {
+        return x -> BytesUtil.read(x, new byte[BUFF_SIZE]);
+    }
+
+    private BytesWriter createSimpleWriter() {
+        return BytesUtil::write;
     }
 }
