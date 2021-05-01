@@ -5,13 +5,13 @@ import java.util.List;
 
 public class Async {
 
-    public static Thread start(ThrowableRunnable throwableRunnable) {
-        Thread thread = new Thread(() -> wrapRunnable(throwableRunnable));
+    public static Thread start(Runnable runnable) {
+        Thread thread = new Thread(runnable);
         thread.start();
         return thread;
     }
 
-    public static void stopAllWhenFirstEnds(int interval, ThrowableRunnable onClose, Thread... threads) {
+    public static void stopAllWhenFirstEnds(int interval, Runnable onClose, Thread... threads) {
         try {
             boolean wait = true;
             while (wait) {
@@ -28,8 +28,6 @@ public class Async {
             joinAll(threads);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
         }
     }
 
@@ -63,19 +61,6 @@ public class Async {
         for (Thread thread : threads) {
             thread.interrupt();
         }
-    }
-
-    private static void wrapRunnable(ThrowableRunnable throwableRunnable) {
-        try {
-            throwableRunnable.run();
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    @FunctionalInterface
-    public interface ThrowableRunnable {
-        void run() throws Exception;
     }
 
 }

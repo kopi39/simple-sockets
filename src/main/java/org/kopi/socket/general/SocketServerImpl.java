@@ -1,5 +1,6 @@
 package org.kopi.socket.general;
 
+import org.kopi.socket.general.ex.SimpleSocketException;
 import org.kopi.socket.itf.SocketServer;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.itf.StrategySelector;
@@ -7,6 +8,7 @@ import org.kopi.socket.itf.StrategySupplier;
 import org.kopi.socket.util.async.Async;
 import org.kopi.socket.util.io.SafeClose;
 
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -69,8 +71,8 @@ public class SocketServerImpl implements SocketServer {
     private void initServer(int port) {
         try {
             this.serverSocket = new ServerSocket(port, SERVER_BACKLOG);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 
@@ -89,10 +91,10 @@ public class SocketServerImpl implements SocketServer {
         } catch (SocketException ex) {
             String exMsg = ex.getMessage();
             if (!"Socket closed".equalsIgnoreCase(exMsg) && !exMsg.startsWith("Interrupted function call")) {
-                throw new RuntimeException(ex);
+                throw new SimpleSocketException(ex);
             }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 
@@ -114,8 +116,6 @@ public class SocketServerImpl implements SocketServer {
             if (result.isStopServer()) {
                 this.stopServer();
             }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
         } finally {
             closeClient(client);
             this.clients.remove(client);

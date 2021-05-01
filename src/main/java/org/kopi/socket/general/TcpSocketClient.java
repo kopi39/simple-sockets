@@ -1,10 +1,12 @@
 package org.kopi.socket.general;
 
+import org.kopi.socket.general.ex.SimpleSocketException;
 import org.kopi.socket.itf.OnConnect;
 import org.kopi.socket.itf.SocketClient;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.util.io.SafeClose;
 
+import java.io.IOException;
 import java.net.Socket;
 
 public class TcpSocketClient implements SocketClient {
@@ -25,8 +27,8 @@ public class TcpSocketClient implements SocketClient {
             clientSocket = new Socket(host, port);
             onConnect.invoke(clientSocket);
             strategy.apply(clientSocket);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 

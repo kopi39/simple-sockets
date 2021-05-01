@@ -1,5 +1,6 @@
 package org.kopi.socket.general;
 
+import org.kopi.socket.general.ex.SimpleSocketException;
 import org.kopi.socket.itf.StrategySelector;
 
 import java.io.IOException;
@@ -19,9 +20,9 @@ public class FirstByteStrategySelector implements StrategySelector {
                     return strategy;
                 }
             }
-            throw new RuntimeException("Strategy not found: " + code);
+            throw new SimpleSocketException("Strategy not found: " + code);
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new SimpleSocketException(ex);
         }
     }
 }

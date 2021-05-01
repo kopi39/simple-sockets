@@ -2,6 +2,7 @@ package org.kopi.socket.ctype.tcp.async;
 
 import org.kopi.socket.ctype.tcp.async.itf.Producer;
 import org.kopi.socket.ctype.tcp.async.itf.Receiver;
+import org.kopi.socket.general.ex.SimpleSocketException;
 import org.kopi.socket.itf.BytesReader;
 import org.kopi.socket.itf.BytesWriter;
 import org.kopi.socket.itf.SocketStrategy;
@@ -46,12 +47,12 @@ public class AsyncStrategy implements SocketStrategy {
         try {
             out = socket.getOutputStream();
             in = socket.getInputStream();
-            Thread receiverThread = Async.start(this::processInput);
+            Thread receiverThread = Async.start(this::tryToProcessInput);
             Thread producerThread = Async.start(() -> this.producer.process(this::sendMessage));
             Async.stopAllWhenFirstEnds(INTERVAL, this::closeInternal, receiverThread, producerThread);
             return this.result;
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 
@@ -69,8 +70,16 @@ public class AsyncStrategy implements SocketStrategy {
         try {
             byte[] encryptedData = this.encryptionService.encrypt(data);
             writer.write(out, encryptedData);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
+        }
+    }
+
+    private void tryToProcessInput() {
+        try {
+            processInput();
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 

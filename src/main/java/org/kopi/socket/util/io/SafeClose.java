@@ -1,6 +1,9 @@
 package org.kopi.socket.util.io;
 
+import org.kopi.socket.general.ex.SimpleSocketException;
+
 import java.io.Closeable;
+import java.io.IOException;
 
 public class SafeClose {
 
@@ -11,8 +14,8 @@ public class SafeClose {
                     closeable.close();
                 }
             }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 

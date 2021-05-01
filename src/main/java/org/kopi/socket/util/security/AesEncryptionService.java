@@ -1,9 +1,15 @@
 package org.kopi.socket.util.security;
 
+import org.kopi.socket.general.ex.SimpleSocketException;
 import org.kopi.socket.util.security.itf.EncryptionService;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 public class AesEncryptionService implements EncryptionService {
 
@@ -22,8 +28,8 @@ public class AesEncryptionService implements EncryptionService {
     public byte[] encrypt(byte[] data) {
         try {
             return encryptor.doFinal(data);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IllegalBlockSizeException | BadPaddingException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 
@@ -31,8 +37,8 @@ public class AesEncryptionService implements EncryptionService {
     public byte[] decrypt(byte[] data) {
         try {
             return decryptor.doFinal(data);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IllegalBlockSizeException | BadPaddingException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 
@@ -41,8 +47,8 @@ public class AesEncryptionService implements EncryptionService {
             Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(mode, secret);
             return cipher;
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 }

@@ -1,12 +1,14 @@
 package org.kopi.socket.ctype.tcp.sync;
 
 import org.kopi.socket.ctype.tcp.sync.itf.SyncProducer;
+import org.kopi.socket.general.ex.SimpleSocketException;
 import org.kopi.socket.itf.BytesReader;
 import org.kopi.socket.itf.BytesWriter;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.util.io.SafeClose;
 import org.kopi.socket.util.security.itf.EncryptionService;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -38,8 +40,8 @@ public class ProducerSyncStrategy implements SocketStrategy {
             this.out = clientSocket.getOutputStream();
             this.in = clientSocket.getInputStream();
             return producer.process(this::send);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 
@@ -62,8 +64,8 @@ public class ProducerSyncStrategy implements SocketStrategy {
                 return null;
             }
             return this.encryptionService.decrypt(response);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 }

@@ -1,6 +1,7 @@
 package org.kopi.socket.ctype.tcp.proxy;
 
 import org.kopi.socket.ctype.tcp.proxy.itf.Interceptor;
+import org.kopi.socket.general.ex.SimpleSocketException;
 import org.kopi.socket.itf.BytesReader;
 import org.kopi.socket.itf.BytesWriter;
 import org.kopi.socket.itf.OnConnect;
@@ -99,7 +100,7 @@ public class ProxyStrategy implements SocketStrategy {
             this.serverOut = server.getInputStream();
 
             return true;
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             System.out.printf("Proxy server can't connect to %s:%d - %s", host, port, ex.getMessage());
         }
         return false;
@@ -149,28 +150,36 @@ public class ProxyStrategy implements SocketStrategy {
         return Optional.ofNullable(result);
     }
 
-    private void passDataFromServerToClient() throws IOException {
-        switch (type) {
-            case SERVER:
-                readNormalPassDynamic(serverOut, clientIn, toClientPipe);
-                break;
-            case CLIENT:
-                readDynamicPassNormal(serverOut, clientIn, toClientPipe);
-                break;
-            default:
-                readNormalPassNormal(serverOut, clientIn, toClientPipe);
+    private void passDataFromServerToClient() {
+        try {
+            switch (type) {
+                case SERVER:
+                    readNormalPassDynamic(serverOut, clientIn, toClientPipe);
+                    break;
+                case CLIENT:
+                    readDynamicPassNormal(serverOut, clientIn, toClientPipe);
+                    break;
+                default:
+                    readNormalPassNormal(serverOut, clientIn, toClientPipe);
+            }
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 
-    private void passDataFromClientToServer() throws IOException {
-        switch (type) {
-            case SERVER:
-                readDynamicPassNormal(clientOut, serverIn, toServerPipe);
-                break;
-            case CLIENT:
-                readNormalPassDynamic(clientOut, serverIn, toServerPipe);
-            default:
-                readNormalPassNormal(clientOut, serverIn, toServerPipe);
+    private void passDataFromClientToServer() {
+        try {
+            switch (type) {
+                case SERVER:
+                    readDynamicPassNormal(clientOut, serverIn, toServerPipe);
+                    break;
+                case CLIENT:
+                    readNormalPassDynamic(clientOut, serverIn, toServerPipe);
+                default:
+                    readNormalPassNormal(clientOut, serverIn, toServerPipe);
+            }
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 
