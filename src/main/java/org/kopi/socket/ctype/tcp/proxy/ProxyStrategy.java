@@ -8,17 +8,20 @@ import org.kopi.socket.itf.OnConnect;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.util.async.Async;
 import org.kopi.socket.util.io.SafeClose;
+import org.kopi.socket.util.log.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ProxyStrategy implements SocketStrategy {
 
     public static final int CODE = 4;
-
+    private static final Logger LOG = Log.get();
     private final List<PipeElem> toServerPipe = new ArrayList<>();
     private final List<PipeElem> toClientPipe = new ArrayList<>();
     private final String host;
@@ -100,8 +103,9 @@ public class ProxyStrategy implements SocketStrategy {
             this.serverOut = server.getInputStream();
 
             return true;
-        } catch (IOException ex) {
-            System.out.printf("Proxy server can't connect to %s:%d - %s", host, port, ex.getMessage());
+        } catch (IOException | SimpleSocketException ex) {
+            String message = String.format("Proxy server can't connect to %s:%d", host, port);
+            LOG.log(Level.SEVERE, message, ex);
         }
         return false;
     }
@@ -162,8 +166,8 @@ public class ProxyStrategy implements SocketStrategy {
                 default:
                     readNormalPassNormal(serverOut, clientIn, toClientPipe);
             }
-        } catch (IOException ex) {
-            throw new SimpleSocketException(ex);
+        } catch (IOException | SimpleSocketException ex) {
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 
@@ -178,8 +182,8 @@ public class ProxyStrategy implements SocketStrategy {
                 default:
                     readNormalPassNormal(clientOut, serverIn, toServerPipe);
             }
-        } catch (IOException ex) {
-            throw new SimpleSocketException(ex);
+        } catch (IOException | SimpleSocketException ex) {
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 

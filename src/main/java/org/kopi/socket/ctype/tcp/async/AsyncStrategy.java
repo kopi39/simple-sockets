@@ -8,17 +8,20 @@ import org.kopi.socket.itf.BytesWriter;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.util.async.Async;
 import org.kopi.socket.util.io.SafeClose;
+import org.kopi.socket.util.log.Log;
 import org.kopi.socket.util.security.itf.EncryptionService;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AsyncStrategy implements SocketStrategy {
 
     public static final int CODE = 0;
-
+    private static final Logger LOG = Log.get();
     private static final int INTERVAL = 1; // 1 ms
 
     private final EncryptionService encryptionService;
@@ -51,8 +54,9 @@ public class AsyncStrategy implements SocketStrategy {
             Thread producerThread = Async.start(() -> this.producer.process(this::sendMessage));
             Async.stopAllWhenFirstEnds(INTERVAL, this::closeInternal, receiverThread, producerThread);
             return this.result;
-        } catch (IOException ex) {
-            throw new SimpleSocketException(ex);
+        } catch (IOException | SimpleSocketException ex) {
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
+            return Result.disconnectClient();
         }
     }
 
@@ -78,8 +82,8 @@ public class AsyncStrategy implements SocketStrategy {
     private void tryToProcessInput() {
         try {
             processInput();
-        } catch (IOException ex) {
-            throw new SimpleSocketException(ex);
+        } catch (IOException | SimpleSocketException ex) {
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
         }
     }
 

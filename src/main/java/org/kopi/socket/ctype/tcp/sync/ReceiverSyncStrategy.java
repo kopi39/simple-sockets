@@ -6,17 +6,20 @@ import org.kopi.socket.itf.BytesReader;
 import org.kopi.socket.itf.BytesWriter;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.util.io.SafeClose;
+import org.kopi.socket.util.log.Log;
 import org.kopi.socket.util.security.itf.EncryptionService;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ReceiverSyncStrategy implements SocketStrategy {
 
     public static final int CODE = 1;
-
+    private static final Logger LOG = Log.get();
     private final EncryptionService encryptionService;
     private final SyncReceiver syncReceiver;
     private final BytesReader reader;
@@ -40,8 +43,9 @@ public class ReceiverSyncStrategy implements SocketStrategy {
             out = clientSocket.getOutputStream();
             in = clientSocket.getInputStream();
             return startInternal();
-        } catch (IOException ex) {
-            throw new SimpleSocketException(ex);
+        } catch (IOException | SimpleSocketException ex) {
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
+            return Result.disconnectClient();
         }
     }
 
