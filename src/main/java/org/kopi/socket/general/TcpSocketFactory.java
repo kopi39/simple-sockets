@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 
 public class TcpSocketFactory {
 
-    private static final int BUFF_SIZE = 1024;
+    private static final int BUFF_SIZE = 16384;
 
     private final StrategyFactory strategyFactory = new StrategyFactory();
 
