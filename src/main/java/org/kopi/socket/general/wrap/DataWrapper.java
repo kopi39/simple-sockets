@@ -1,5 +1,6 @@
 package org.kopi.socket.general.wrap;
 
+import org.kopi.socket.general.ex.SimpleSocketException;
 import org.kopi.socket.util.io.BytesUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -23,7 +24,7 @@ public class DataWrapper {
             }
             return res.toByteArray();
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            throw new SimpleSocketException(ex);
         }
     }
 

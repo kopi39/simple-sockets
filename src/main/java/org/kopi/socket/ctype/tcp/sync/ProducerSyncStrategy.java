@@ -1,20 +1,25 @@
 package org.kopi.socket.ctype.tcp.sync;
 
 import org.kopi.socket.ctype.tcp.sync.itf.SyncProducer;
+import org.kopi.socket.general.ex.SimpleSocketException;
 import org.kopi.socket.itf.BytesReader;
 import org.kopi.socket.itf.BytesWriter;
 import org.kopi.socket.itf.SocketStrategy;
 import org.kopi.socket.util.io.SafeClose;
+import org.kopi.socket.util.log.Log;
 import org.kopi.socket.util.security.itf.EncryptionService;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ProducerSyncStrategy implements SocketStrategy {
 
     public static final int CODE = 2;
-
+    private static final Logger LOG = Log.get();
     private final EncryptionService encryptionService;
     private final SyncProducer producer;
     private final BytesReader reader;
@@ -38,8 +43,9 @@ public class ProducerSyncStrategy implements SocketStrategy {
             this.out = clientSocket.getOutputStream();
             this.in = clientSocket.getInputStream();
             return producer.process(this::send);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException | SimpleSocketException ex) {
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
+            return Result.disconnectClient();
         }
     }
 
@@ -62,8 +68,8 @@ public class ProducerSyncStrategy implements SocketStrategy {
                 return null;
             }
             return this.encryptionService.decrypt(response);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new SimpleSocketException(ex);
         }
     }
 }

@@ -17,6 +17,7 @@ import org.kopi.socket.util.io.BytesUtil;
 import org.kopi.socket.util.security.NoEncryptionService;
 import org.kopi.socket.util.security.itf.EncryptionService;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import java.util.stream.Stream;
 
 public class TcpSocketFactory {
 
-    private static final int BUFF_SIZE = 1024;
+    private static final int BUFF_SIZE = 16384;
 
     private final StrategyFactory strategyFactory = new StrategyFactory();
 
@@ -126,7 +127,7 @@ public class TcpSocketFactory {
 
     }
 
-    private void onConnect(Socket clientSocket, int code) throws Exception {
+    private void onConnect(Socket clientSocket, int code) throws IOException {
         OutputStream out = clientSocket.getOutputStream();
         out.write(code);
         out.flush();
